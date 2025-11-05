@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app_pengaduan/pages/auth/login_page.dart';
+// import 'package:app_pengaduan/pages/auth/login_page.dart';
 import 'package:app_pengaduan/pages/dashboard.dart';
 
 void main() {
@@ -19,10 +19,11 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
+      home:  const DashboardPage(),
       //Initial Route
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginPage(),
+        // '/': (context) => const LoginPage(),
         '/dashboard': (context) => const DashboardPage(),
       },
     );
