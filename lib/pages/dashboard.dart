@@ -1,3 +1,4 @@
+import 'package:app_pengaduan/pages/kategori_pengaduan.dart';
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -36,10 +37,7 @@ class DashboardPage extends StatelessWidget {
                         ),
                         Text(
                           'Padang Panjang',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.green,
-                          ),
+                          style: TextStyle(fontSize: 16, color: Colors.green),
                         ),
                       ],
                     ),
@@ -69,8 +67,9 @@ class DashboardPage extends StatelessWidget {
                     const SizedBox(width: 12),
                     const CircleAvatar(
                       radius: 25,
-                      backgroundImage:
-                          AssetImage('assets/images/foto_dummy_1.jpg'),
+                      backgroundImage: AssetImage(
+                        'assets/images/foto_dummy_1.jpg',
+                      ),
                     ),
                   ],
                 ),
@@ -124,15 +123,26 @@ class DashboardPage extends StatelessWidget {
                 // ✅ Evenly spaced 4 Kategori items
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Expanded(child: KategoriItem('Informasi', Icons.campaign)),
                     Expanded(child: KategoriItem('Konsultasi', Icons.thumb_up)),
-                    Expanded(child: KategoriItem('Pengaduan', Icons.feedback)),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => KategoriPengaduanPage(),
+                            ),
+                          );
+                        },
+                        child: KategoriItem('Pengaduan', Icons.feedback),
+                      ),
+                    ),
                     Expanded(child: KategoriItem('Lainnya', Icons.more_horiz)),
                   ],
                 ),
                 const SizedBox(height: 20),
-
 
                 // ✅ Pengaduan Section
                 // ✅ Fixed Pengaduan Section (no more overflow)
@@ -169,7 +179,9 @@ class DashboardPage extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.notifications), label: 'Pemberitahuan'),
+            icon: Icon(Icons.notifications),
+            label: 'Pemberitahuan',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -190,10 +202,7 @@ class TrendingCard extends StatelessWidget {
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        image: DecorationImage(
-          image: AssetImage(imagePath),
-          fit: BoxFit.cover,
-        ),
+        image: DecorationImage(image: AssetImage(imagePath), fit: BoxFit.cover),
       ),
       child: Stack(
         children: [
@@ -204,8 +213,9 @@ class TrendingCard extends StatelessWidget {
             height: 70,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(16),
+                ),
                 color: Colors.green.withOpacity(0.7),
               ),
               padding: const EdgeInsets.all(8),
@@ -215,7 +225,9 @@ class TrendingCard extends StatelessWidget {
                   Text(
                     'Berita Terkini',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 4),
                   Text(
@@ -284,7 +296,6 @@ class KategoriItem extends StatelessWidget {
   }
 }
 
-
 class PengaduanCard extends StatelessWidget {
   final String imagePath;
   const PengaduanCard(this.imagePath, {super.key});
@@ -314,7 +325,10 @@ class PengaduanCard extends StatelessWidget {
             children: [
               CircleAvatar(radius: 20, backgroundImage: AssetImage(imagePath)),
               const SizedBox(width: 8),
-              const Text('Neymar', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Neymar',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ],
           ),
           const SizedBox(height: 8),

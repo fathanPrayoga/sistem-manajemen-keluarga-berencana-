@@ -99,10 +99,11 @@ class _VerificationPageState extends State<VerificationPage> {
       for (int i = 0; i < 4; i++) {
         if (_otpControllers[i].text.isEmpty) {
           _otpControllers[i].text = value;
-          if (i < 3)
+          if (i < 3) {
             FocusScope.of(context).requestFocus(_otpFocusNodes[i + 1]);
-          else
+          } else {
             FocusScope.of(context).unfocus();
+          }
           break;
         }
       }
@@ -113,8 +114,12 @@ class _VerificationPageState extends State<VerificationPage> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (var c in _otpControllers) c.dispose();
-    for (var f in _otpFocusNodes) f.dispose();
+    for (var c in _otpControllers) {
+      c.dispose();
+    }
+    for (var f in _otpFocusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
