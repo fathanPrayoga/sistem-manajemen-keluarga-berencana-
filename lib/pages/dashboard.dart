@@ -139,7 +139,19 @@ class DashboardPage extends StatelessWidget {
                         child: KategoriItem('Pengaduan', Icons.feedback),
                       ),
                     ),
-                    Expanded(child: KategoriItem('Lainnya', Icons.more_horiz)),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          // Menggunakan pushNamed dengan route '/KeluargaBerencana'
+                          Navigator.pushNamed(context, '/KeluargaBerencana');
+                        },
+                        // Mengubah teks menjadi 'Keluarga Berencana' dan ikon
+                        child: KategoriItem(
+                          'Keluarga Berencana',
+                          Icons.family_restroom,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
