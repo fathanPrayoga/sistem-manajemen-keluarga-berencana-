@@ -9,4 +9,5 @@ class AppColors {
   static const Color error = Color(0xFFF44336);
 
   static const Color authBackgroundOverlay = Color(0xCCFFFFFF);
+  static const Color primaryLight = Color(0xFFE0F2F1);
 }
