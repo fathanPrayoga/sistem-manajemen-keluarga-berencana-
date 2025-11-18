@@ -1,4 +1,5 @@
 import 'package:app_pengaduan/pages/kategori_pengaduan.dart';
+import 'package:app_pengaduan/pages/konsultasi.dart';
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -125,7 +126,22 @@ class DashboardPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(child: KategoriItem('Informasi', Icons.campaign)),
-                    Expanded(child: KategoriItem('Konsultasi', Icons.thumb_up)),
+                    // <<< TAMBAHKAN GESTUREDETECTOR UNTUK KONSULTASI >>>
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          // Navigasi ke Halaman Konsultasi
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const KonsultasiPage(),
+                            ),
+                          );
+                        },
+                        child: KategoriItem('Konsultasi', Icons.thumb_up),
+                      ),
+                    ),
+                    // <<< AKHIR PERUBAHAN UNTUK KONSULTASI >>>
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
@@ -139,7 +155,19 @@ class DashboardPage extends StatelessWidget {
                         child: KategoriItem('Pengaduan', Icons.feedback),
                       ),
                     ),
-                    Expanded(child: KategoriItem('Lainnya', Icons.more_horiz)),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          // Menggunakan pushNamed dengan route '/KeluargaBerencana'
+                          Navigator.pushNamed(context, '/KeluargaBerencana');
+                        },
+                        // Mengubah teks menjadi 'Keluarga Berencana' dan ikon
+                        child: KategoriItem(
+                          'Keluarga Berencana',
+                          Icons.family_restroom,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),

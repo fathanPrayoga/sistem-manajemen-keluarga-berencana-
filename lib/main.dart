@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_pengaduan/pages/auth/login_page.dart';
 import 'package:app_pengaduan/pages/dashboard.dart';
 import 'package:app_pengaduan/pages/kategori_pengaduan.dart';
+import 'package:app_pengaduan/pages/keluarga_berencana.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/dashboard': (context) => const DashboardPage(),
         '/kategori': (context) => const KategoriPengaduanPage(),
+        '/KeluargaBerencana': (context) => const KbFormPage(),
       },
     );
   }
