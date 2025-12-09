@@ -78,7 +78,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 40),
 
-                    // Input Fields
                     _buildTextField(
                       controller: _emailController,
                       label: 'Email',
@@ -109,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: AppTextStyles.bodyText.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
-                          ), // Ganti dengan AppColors
+                          ),
                         ),
                       ),
                     ),
