@@ -1,6 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../style/colors.dart';
 import '../style/text_style.dart';
 import '../widget/bottom_navbar.dart';
@@ -15,16 +15,58 @@ class PengaduanPage extends StatefulWidget {
 
 class _PengaduanPageState extends State<PengaduanPage> {
   final _formKey = GlobalKey<FormState>();
+
   File? _image;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _pickImage(ImageSource source) async {
+    final picked = await _picker.pickImage(source: source, imageQuality: 70);
+
     if (picked != null) {
       setState(() {
         _image = File(picked.path);
       });
     }
+  }
+
+  void _showImageSource() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Ambil dari Kamera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo),
+                title: const Text('Pilih dari Galeri'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _removeImage() {
+    setState(() {
+      _image = null;
+    });
   }
 
   @override
@@ -41,7 +83,6 @@ class _PengaduanPageState extends State<PengaduanPage> {
           style: AppTextStyles.headline1,
         ),
         backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.background,
         centerTitle: true,
       ),
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
@@ -54,7 +95,7 @@ class _PengaduanPageState extends State<PengaduanPage> {
             children: [
               _buildTextField('Nama Lengkap', 'Harus dengan nama lengkap'),
               _buildTextField('NIK', 'Harus sesuai dengan KTP'),
-              _buildTextField('No Handphone', 'Nomor harus akti!'),
+              _buildTextField('No Handphone', 'Nomor harus aktif'),
               _buildTextField('Alamat', 'Alamat tempat tinggal sekarang'),
               _buildTextField(
                 'Keluhan',
@@ -63,17 +104,17 @@ class _PengaduanPageState extends State<PengaduanPage> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Bukti :',
+                'Bukti Foto (Opsional) :',
                 style: AppTextStyles.bodyText.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: _pickImage,
+                onTap: _showImageSource,
                 child: Container(
                   width: double.infinity,
-                  height: 160,
+                  height: 180,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.primary),
@@ -90,22 +131,47 @@ class _PengaduanPageState extends State<PengaduanPage> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Tambahkan Foto',
+                              'Tambahkan Foto (Opsional)',
                               style: AppTextStyles.caption,
                             ),
                           ],
                         )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _image!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
+                      : Stack(
+                          children: [
+                            Center(
+                              child: Image.file(
+                                _image!,
+                                fit: BoxFit.contain, // TIDAK ZOOM
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: _removeImage,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.6),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                 ),
               ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 24),
+
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -158,7 +224,8 @@ class _PengaduanPageState extends State<PengaduanPage> {
             borderSide: const BorderSide(color: AppColors.primary),
           ),
         ),
-        validator: (value) => value!.isEmpty ? 'Bagian ini wajib diisi' : null,
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Bagian ini wajib diisi' : null,
       ),
     );
   }

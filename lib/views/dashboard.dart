@@ -1,5 +1,5 @@
-import 'package:app_pengaduan/pages/kategori_pengaduan.dart';
-import 'package:app_pengaduan/pages/konsultasi.dart';
+import 'package:app_pengaduan/views/kategori_pengaduan.dart';
+import 'package:app_pengaduan/views/konsultasi.dart';
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatelessWidget {

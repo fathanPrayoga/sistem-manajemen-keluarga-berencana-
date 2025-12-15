@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:app_pengaduan/pages/auth/login_page.dart';
-import 'package:app_pengaduan/pages/dashboard.dart';
-import 'package:app_pengaduan/pages/kategori_pengaduan.dart';
-import 'package:app_pengaduan/pages/keluarga_berencana.dart';
+import 'package:app_pengaduan/views/auth/login_page.dart';
+import 'package:app_pengaduan/views/dashboard.dart';
+import 'package:app_pengaduan/views/kategori_pengaduan.dart';
+import 'package:app_pengaduan/views/keluarga_berencana.dart';
 
 void main() {
   runApp(const MyApp());
