@@ -10,8 +10,9 @@ class KbFormPage extends StatefulWidget {
 class _KbFormPageState extends State<KbFormPage> {
   // 1. GlobalKey untuk Form
   final _formKey = GlobalKey<FormState>();
-
+  
   // State Management
+
   String? _layananTerpilih;
   DateTime _tanggalTerpilih = DateTime.now();
 
@@ -30,12 +31,11 @@ class _KbFormPageState extends State<KbFormPage> {
       lastDate: DateTime(2101),
       builder: (context, child) {
         return Theme(
-          // Kustomisasi warna Date Picker agar sesuai tema hijau
           data: ThemeData.light().copyWith(
-            primaryColor: const Color(0xFF388E3C), // Warna header
+            primaryColor: const Color(0xFF388E3C),
             colorScheme: const ColorScheme.light(
               primary: Color(0xFF388E3C),
-            ), // Warna tombol
+            ),
             buttonTheme: const ButtonThemeData(
               textTheme: ButtonTextTheme.primary,
             ),
@@ -52,7 +52,6 @@ class _KbFormPageState extends State<KbFormPage> {
     }
   }
 
-  // Jangan lupa membuang controller saat widget dibuang
   @override
   void dispose() {
     _namaController.dispose();
@@ -62,13 +61,10 @@ class _KbFormPageState extends State<KbFormPage> {
     super.dispose();
   }
 
-  // Fungsi saat tombol "Daftar" ditekan
   void _submitForm() {
     // 2. Validasi Form
     if (_formKey.currentState!.validate()) {
-      // Validasi tambahan untuk Radio Button
       if (_layananTerpilih == null) {
-        // Tampilkan pesan error untuk radio button/layanan
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Mohon pilih Jenis Layanan KB.'),
@@ -76,7 +72,7 @@ class _KbFormPageState extends State<KbFormPage> {
           ),
         );
       } else {
-        // Jika semua valid, lanjutkan proses:
+        // Jika semua validasi berhasol
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Formulir berhasil divalidasi dan dikirim!'),
@@ -101,12 +97,10 @@ class _KbFormPageState extends State<KbFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Styling dasar yang digunakan berulang
-    const Color inputFillColor = Color(0xFFE8F5E9); // Hijau muda
-    const Color iconColor = Color(0xFF388E3C); // Hijau gelap
-    const Color errorColor = Colors.red; // Merah untuk border error
+    const Color inputFillColor = Color(0xFFE8F5E9);
+    const Color iconColor = Color(0xFF388E3C); 
+    const Color errorColor = Colors.red;
 
-    // Fungsi untuk membuat TextField yang telah di-style
     Widget _buildStyledTextField({
       required String label,
       required String hint,
@@ -133,30 +127,31 @@ class _KbFormPageState extends State<KbFormPage> {
                 hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: inputFillColor,
-                // Gaya default/enable border (tanpa border)
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
                   borderSide: BorderSide.none,
                 ),
+                
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
                   borderSide: BorderSide.none,
                 ),
-                // Gaya **Error Border**
+                
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
                   borderSide: const BorderSide(color: errorColor, width: 2.0),
                 ),
-                // Gaya Focused Error Border
+                
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
                   borderSide: const BorderSide(color: errorColor, width: 2.0),
                 ),
-                // Gaya Focused Border (opsional, bisa sama dengan error/default)
+                
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
                   borderSide: const BorderSide(color: iconColor, width: 1.5),
                 ),
+                
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 16.0,
                   horizontal: 20.0,
@@ -178,7 +173,7 @@ class _KbFormPageState extends State<KbFormPage> {
           'Keluarga Berencana',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF66BB6A), // Warna hijau AppBar
+        backgroundColor: const Color(0xFF66BB6A),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -186,7 +181,7 @@ class _KbFormPageState extends State<KbFormPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Form(
-          key: _formKey, // Pasang GlobalKey di sini
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -210,7 +205,7 @@ class _KbFormPageState extends State<KbFormPage> {
                   if (value == null || value.isEmpty) {
                     return 'NIK harus diisi.';
                   }
-                  // Tambahkan validasi NIK lain jika perlu (misal: 16 digit)
+                  // Tambahkan validasi NIK lain
                   return null;
                 },
               ),
@@ -237,7 +232,6 @@ class _KbFormPageState extends State<KbFormPage> {
                 },
               ),
 
-              // --- Jenis Layanan KB (Radio Buttons) ---
               const Text(
                 'Jenis Layanan KB :',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -274,7 +268,6 @@ class _KbFormPageState extends State<KbFormPage> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 8),
-              // Elemen tanggal ini tidak menggunakan validator Form
               GestureDetector(
                 onTap: () => _selectDate(context),
                 child: Container(
@@ -311,7 +304,7 @@ class _KbFormPageState extends State<KbFormPage> {
               // Tombol Simpan
               Center(
                 child: ElevatedButton(
-                  onPressed: _submitForm, // Panggil fungsi _submitForm
+                  onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: iconColor,
                     padding: const EdgeInsets.symmetric(
