@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Penting untuk membatasi input angka
+import 'package:provider/provider.dart';
+import '../model/kb_model.dart';
+import '../viewmodels/kb_view_model.dart';
 
 class KbFormPage extends StatefulWidget {
   const KbFormPage({super.key});
@@ -8,326 +12,153 @@ class KbFormPage extends StatefulWidget {
 }
 
 class _KbFormPageState extends State<KbFormPage> {
-  // 1. GlobalKey untuk Form
   final _formKey = GlobalKey<FormState>();
+  final _namaController = TextEditingController();
+  final _nikController = TextEditingController();
+  final _hpController = TextEditingController();
+  final _alamatController = TextEditingController();
   
-  // State Management
-
   String? _layananTerpilih;
   DateTime _tanggalTerpilih = DateTime.now();
+  bool _isInit = true;
 
-  // Controller untuk menyimpan nilai input
-  final TextEditingController _namaController = TextEditingController();
-  final TextEditingController _nikController = TextEditingController();
-  final TextEditingController _hpController = TextEditingController();
-  final TextEditingController _alamatController = TextEditingController();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit) {
+      final data = ModalRoute.of(context)?.settings.arguments as KbModel?;
+      if (data != null) {
+        _namaController.text = data.nama;
+        _nikController.text = data.nik;
+        _hpController.text = data.hp;
+        _alamatController.text = data.alamat;
+        _layananTerpilih = data.layanan;
+        _tanggalTerpilih = data.tanggal;
+      }
+      _isInit = false;
+    }
+  }
 
-  // Fungsi untuk menampilkan Date Picker
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _tanggalTerpilih,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: const Color(0xFF388E3C),
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF388E3C),
-            ),
-            buttonTheme: const ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
-
-    if (picked != null && picked != _tanggalTerpilih) {
-      setState(() {
-        _tanggalTerpilih = picked;
-      });
-    }
+    if (picked != null) setState(() => _tanggalTerpilih = picked);
   }
 
-  @override
-  void dispose() {
-    _namaController.dispose();
-    _nikController.dispose();
-    _hpController.dispose();
-    _alamatController.dispose();
-    super.dispose();
-  }
-
-  void _submitForm() {
-    // 2. Validasi Form
-    if (_formKey.currentState!.validate()) {
-      if (_layananTerpilih == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Mohon pilih Jenis Layanan KB.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } else {
-        // Jika semua validasi berhasol
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Formulir berhasil divalidasi dan dikirim!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Logika pengiriman data ke server atau navigasi
-        print('Nama: ${_namaController.text}');
-        print('Layanan: $_layananTerpilih');
-        print('Tanggal: $_tanggalTerpilih');
-      }
-    } else {
-      // Tampilkan pesan jika ada error di TextFormField
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mohon isi semua kolom yang diperlukan.'),
-          backgroundColor: Colors.red,
-        ),
+  void _submit() async {
+    if (_formKey.currentState!.validate() && _layananTerpilih != null) {
+      final dataLama = ModalRoute.of(context)?.settings.arguments as KbModel?;
+      final dataBaru = KbModel(
+        nama: _namaController.text,
+        nik: _nikController.text,
+        hp: _hpController.text,
+        alamat: _alamatController.text,
+        layanan: _layananTerpilih!,
+        tanggal: _tanggalTerpilih,
       );
+
+      try {
+        await context.read<KbViewModel>().simpanPendaftaran(
+          data: dataBaru,
+          isEdit: dataLama != null,
+          id: dataLama?.id,
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     const Color inputFillColor = Color(0xFFE8F5E9);
-    const Color iconColor = Color(0xFF388E3C); 
-    const Color errorColor = Colors.red;
-
-    Widget _buildStyledTextField({
-      required String label,
-      required String hint,
-      required TextEditingController controller,
-      // 3. Tambahkan fungsi validator
-      String? Function(String?)? validator,
-    }) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: controller,
-              // 4. Implementasikan validator
-              validator: validator,
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(color: Colors.grey),
-                filled: true,
-                fillColor: inputFillColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  borderSide: BorderSide.none,
-                ),
-                
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  borderSide: BorderSide.none,
-                ),
-                
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  borderSide: const BorderSide(color: errorColor, width: 2.0),
-                ),
-                
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  borderSide: const BorderSide(color: errorColor, width: 2.0),
-                ),
-                
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  borderSide: const BorderSide(color: iconColor, width: 1.5),
-                ),
-                
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 16.0,
-                  horizontal: 20.0,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    String formattedDate =
-        '${_tanggalTerpilih.day}/${_tanggalTerpilih.month}/${_tanggalTerpilih.year}';
+    const Color iconColor = Color(0xFF388E3C);
+    final viewModel = context.watch<KbViewModel>();
+    String formattedDate = "${_tanggalTerpilih.day}/${_tanggalTerpilih.month}/${_tanggalTerpilih.year}";
 
     return Scaffold(
-      // 1. AppBar
-      appBar: AppBar(
-        title: const Text(
-          'Keluarga Berencana',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF66BB6A),
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
-      ),
-      // 2. Body Formulir dibungkus dengan Form widget
+      appBar: AppBar(title: const Text('Form Pendaftaran KB')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // --- Bidang Input Teks dengan Controller & Validator ---
-              _buildStyledTextField(
-                label: 'Nama Lengkap :',
-                hint: 'harus dengan nama lengkap',
-                controller: _namaController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama Lengkap harus diisi.';
-                  }
-                  return null;
-                },
+            children: [
+              _buildField('Nama Lengkap :', 'Masukkan nama lengkap', _namaController),
+              
+              // NIK hanya angka
+              _buildField(
+                'NIK :', 'Sesuai KTP', _nikController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
-              _buildStyledTextField(
-                label: 'NIK :',
-                hint: 'harus sesuai dengan KTP',
-                controller: _nikController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'NIK harus diisi.';
-                  }
-                  // Tambahkan validasi NIK lain
-                  return null;
-                },
+              
+              // HP hanya angka
+              _buildField(
+                'No Handphone :', 'Nomor aktif', _hpController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
-              _buildStyledTextField(
-                label: 'No Handphone :',
-                hint: 'nomor harus aktif',
-                controller: _hpController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nomor Handphone harus diisi.';
-                  }
-                  return null;
-                },
-              ),
-              _buildStyledTextField(
-                label: 'Alamat :',
-                hint: 'alamat tempat tinggal sekarang',
-                controller: _alamatController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Alamat harus diisi.';
-                  }
-                  return null;
-                },
-              ),
+              
+              _buildField('Alamat :', 'Alamat sekarang', _alamatController),
 
-              const Text(
-                'Jenis Layanan KB :',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              RadioListTile<String>(
-                title: const Text('Konstrasepsi jangka pendek'),
-                value: 'pendek',
-                groupValue: _layananTerpilih,
-                onChanged: (String? value) {
-                  setState(() {
-                    _layananTerpilih = value;
-                  });
-                },
-                activeColor: iconColor,
-                contentPadding: EdgeInsets.zero,
-              ),
-              RadioListTile<String>(
-                title: const Text('Konstrasepsi jangka panjang'),
-                value: 'panjang',
-                groupValue: _layananTerpilih,
-                onChanged: (String? value) {
-                  setState(() {
-                    _layananTerpilih = value;
-                  });
-                },
-                activeColor: iconColor,
-                contentPadding: EdgeInsets.zero,
-              ),
-              const SizedBox(height: 16),
-
-              // --- Tanggal (Date Picker) ---
-              const Text(
-                'Tanggal :',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
+              const Text('Tanggal :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () => _selectDate(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16.0,
-                    horizontal: 20.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: inputFillColor,
-                    borderRadius: BorderRadius.circular(30.0),
-                    border: Border.all(color: Colors.transparent),
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      Icon(
-                        Icons.calendar_today,
-                        color: iconColor,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        formattedDate,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w500,
-                          color: iconColor,
-                        ),
-                      ),
-                    ],
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  decoration: BoxDecoration(color: inputFillColor, borderRadius: BorderRadius.circular(30)),
+                  child: Row(children: [const Icon(Icons.calendar_today, color: iconColor), const SizedBox(width: 10), Text(formattedDate)]),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 16),
 
-              // Tombol Simpan
+              const Text('Jenis Layanan KB :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              RadioListTile<String>(title: const Text('Jangka Pendek'), value: 'Jangka Pendek', groupValue: _layananTerpilih, onChanged: (v) => setState(() => _layananTerpilih = v), activeColor: iconColor),
+              RadioListTile<String>(title: const Text('Jangka Panjang'), value: 'Jangka Panjang', groupValue: _layananTerpilih, onChanged: (v) => setState(() => _layananTerpilih = v), activeColor: iconColor),
+
+              const SizedBox(height: 30),
               Center(
                 child: ElevatedButton(
-                  onPressed: _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: iconColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 50,
-                      vertical: 15,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: const Text(
-                    'Daftar',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  onPressed: viewModel.isLoading ? null : _submit,
+                  style: ElevatedButton.styleFrom(backgroundColor: iconColor, padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
+                  child: viewModel.isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("SIMPAN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
-              ),
+              )
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildField(String label, String hint, TextEditingController controller, {TextInputType keyboardType = TextInputType.text, List<TextInputFormatter>? inputFormatters}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            keyboardType: keyboardType, // BARU
+            inputFormatters: inputFormatters, // BARU
+            validator: (v) => v!.isEmpty ? 'Tidak boleh kosong' : null,
+            decoration: InputDecoration(
+              hintText: hint, filled: true, fillColor: const Color(0xFFE8F5E9),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            ),
+          ),
+        ],
       ),
     );
   }
