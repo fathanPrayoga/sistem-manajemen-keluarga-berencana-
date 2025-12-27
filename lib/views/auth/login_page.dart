@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:app_pengaduan/style/colors.dart';
 import 'package:app_pengaduan/style/text_style.dart';
 import 'register.dart';
-import '../dashboard.dart';
+import 'package:provider/provider.dart';
+import '../../viewmodels/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,22 +16,43 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
 
   void _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+    // UI Loading state is now handled by Provider's notifyListeners if we wrapped with Consumer,
+    // but here we can just await the result.
+    // Ideally we should wrap the button in a Consumer<AuthProvider> to show loading spinner.
+    // For now, let's keep local loading state for simplicity or use Provider's state.
 
-    print('Login (Tampilan Saja) Sukses. Navigasi ke Dashboard.');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DashboardPage()),
+    bool success = await authProvider.signIn(
+      _emailController.text,
+      _passwordController.text,
     );
+
+    if (success) {
+      // Navigation is handled by main.dart wrapper mostly, but explicit pushReplacement is safer for Login Pages
+      // However, main.dart checks 'home', but since we are already IN the widget tree,
+      // we might need to manually navigate or rely on a stream.
+      // The plan in main.dart uses "home: Consumer..." which works on STARTUP.
+      // For runtime login, better to navigate manually.
+      if (!mounted) return;
+      // print('Login Sukses');
+      // No need to navigate if main.dart rebuilds?
+      // Actually main.dart rebuilt only if we use a StreamProvider or if this Widget is child of the switch.
+      // Since we are pushing routes, let's manually push to Dashboard to be safe and responsive.
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login Gagal. Periksa email dan password Anda.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -115,25 +137,29 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 24),
 
                     // Tombol Login dengan indikator loading
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: AppColors.background,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Masuk',
-                              style: AppTextStyles.buttonText,
-                            ),
+                    Consumer<AuthProvider>(
+                      builder: (context, auth, child) {
+                        return ElevatedButton(
+                          onPressed: auth.isLoading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: auth.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.background,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Masuk',
+                                  style: AppTextStyles.buttonText,
+                                ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 50),

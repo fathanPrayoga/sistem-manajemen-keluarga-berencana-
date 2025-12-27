@@ -52,7 +52,6 @@ class _KbFormPageState extends State<KbFormPage> {
     }
   }
 
-  // Jangan lupa membuang controller saat widget dibuang
   @override
   void dispose() {
     _namaController.dispose();
@@ -107,7 +106,7 @@ class _KbFormPageState extends State<KbFormPage> {
     const Color errorColor = Colors.red; // Merah untuk border error
 
     // Fungsi untuk membuat TextField yang telah di-style
-    Widget _buildStyledTextField({
+    Widget buildStyledTextField({
       required String label,
       required String hint,
       required TextEditingController controller,
@@ -191,7 +190,7 @@ class _KbFormPageState extends State<KbFormPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               // --- Bidang Input Teks dengan Controller & Validator ---
-              _buildStyledTextField(
+              buildStyledTextField(
                 label: 'Nama Lengkap :',
                 hint: 'harus dengan nama lengkap',
                 controller: _namaController,
@@ -202,7 +201,7 @@ class _KbFormPageState extends State<KbFormPage> {
                   return null;
                 },
               ),
-              _buildStyledTextField(
+              buildStyledTextField(
                 label: 'NIK :',
                 hint: 'harus sesuai dengan KTP',
                 controller: _nikController,
@@ -214,7 +213,7 @@ class _KbFormPageState extends State<KbFormPage> {
                   return null;
                 },
               ),
-              _buildStyledTextField(
+              buildStyledTextField(
                 label: 'No Handphone :',
                 hint: 'nomor harus aktif',
                 controller: _hpController,
@@ -225,7 +224,7 @@ class _KbFormPageState extends State<KbFormPage> {
                   return null;
                 },
               ),
-              _buildStyledTextField(
+              buildStyledTextField(
                 label: 'Alamat :',
                 hint: 'alamat tempat tinggal sekarang',
                 controller: _alamatController,
@@ -289,10 +288,7 @@ class _KbFormPageState extends State<KbFormPage> {
                   ),
                   child: Row(
                     children: <Widget>[
-                      Icon(
-                        Icons.calendar_today,
-                        color: iconColor,
-                      ),
+                      Icon(Icons.calendar_today, color: iconColor),
                       const SizedBox(width: 10),
                       Text(
                         formattedDate,
