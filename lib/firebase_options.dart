@@ -17,29 +17,17 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -59,4 +47,43 @@ class DefaultFirebaseOptions {
     projectId: 'app-pengaduan-71ba1',
     storageBucket: 'app-pengaduan-71ba1.firebasestorage.app',
   );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCcgOwEA-moVk27TC5psgn_2JQEnGlUf-k',
+    appId: '1:165397405082:web:5816c13d25fac7fc89ee23',
+    messagingSenderId: '165397405082',
+    projectId: 'app-pengaduan-71ba1',
+    authDomain: 'app-pengaduan-71ba1.firebaseapp.com',
+    storageBucket: 'app-pengaduan-71ba1.firebasestorage.app',
+    measurementId: 'G-9XS41W84RT',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBrHu3BtwKgWitatjxDUrke-JKMFwRdgg0',
+    appId: '1:165397405082:ios:151120ac91ed310889ee23',
+    messagingSenderId: '165397405082',
+    projectId: 'app-pengaduan-71ba1',
+    storageBucket: 'app-pengaduan-71ba1.firebasestorage.app',
+    iosBundleId: 'com.example.appPengaduan',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBrHu3BtwKgWitatjxDUrke-JKMFwRdgg0',
+    appId: '1:165397405082:ios:151120ac91ed310889ee23',
+    messagingSenderId: '165397405082',
+    projectId: 'app-pengaduan-71ba1',
+    storageBucket: 'app-pengaduan-71ba1.firebasestorage.app',
+    iosBundleId: 'com.example.appPengaduan',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCcgOwEA-moVk27TC5psgn_2JQEnGlUf-k',
+    appId: '1:165397405082:web:ce07b60d7aac32c789ee23',
+    messagingSenderId: '165397405082',
+    projectId: 'app-pengaduan-71ba1',
+    authDomain: 'app-pengaduan-71ba1.firebaseapp.com',
+    storageBucket: 'app-pengaduan-71ba1.firebasestorage.app',
+    measurementId: 'G-FEYPJVC0L9',
+  );
+
 }

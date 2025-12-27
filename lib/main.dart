@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
+import 'package:app_pengaduan/viewmodels/kb_view_model.dart';
 import 'package:app_pengaduan/views/auth/login_page.dart';
 import 'package:app_pengaduan/views/dashboard.dart';
 import 'package:app_pengaduan/views/kategori_pengaduan.dart';
+import 'package:app_pengaduan/views/kb_list_page.dart';
 import 'package:app_pengaduan/views/keluarga_berencana.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MyApp());
 }
 
@@ -13,23 +24,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'App Pelaporan',
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => KbViewModel()),
+      ],
+      child: MaterialApp(
+        title: 'Sistem Manajemen KB',
+        debugShowCheckedModeBanner: false,
+        
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4CAF50)),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF66BB6A),
+            iconTheme: IconThemeData(color: Colors.white),
+            titleTextStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
 
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4CAF50)),
-        useMaterial3: true,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const LoginPage(),
+          '/dashboard': (context) => const DashboardPage(),
+          '/kategori': (context) => const KategoriPengaduanPage(),
+          
+          '/KeluargaBerencana': (context) => const KbListPage(),
+          '/FormKB': (context) => const KbFormPage(),
+        },
       ),
-
-      home: const LoginPage(),
-      //Initial Route
-      initialRoute: '/',
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/dashboard': (context) => const DashboardPage(),
-        '/kategori': (context) => const KategoriPengaduanPage(),
-        '/KeluargaBerencana': (context) => const KbFormPage(),
-      },
     );
   }
 }
