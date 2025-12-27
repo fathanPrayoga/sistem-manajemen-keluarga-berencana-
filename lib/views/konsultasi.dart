@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../style/colors.dart';
 import '../style/text_style.dart';
 import '../widget/bottom_navbar.dart';
-import 'package:app_pengaduan/pages/chat_konsultasi_page.dart';
+import 'package:app_pengaduan/views/chat_konsultasi_page.dart';
 
 class KonsultasiPage extends StatelessWidget {
   const KonsultasiPage({super.key});
