@@ -22,6 +22,11 @@ class _KbFormPageState extends State<KbFormPage> {
   DateTime _tanggalTerpilih = DateTime.now();
   bool _isInit = true;
 
+  // Konstanta Warna (dari Master)
+  static const Color inputFillColor = Color(0xFFE8F5E9);
+  static const Color iconColor = Color(0xFF388E3C);
+  static const Color errorColor = Colors.red;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -71,13 +76,24 @@ class _KbFormPageState extends State<KbFormPage> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
       }
+    } else if (_layananTerpilih == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Harap pilih jenis layanan KB")),
+      );
     }
   }
 
   @override
+  void dispose() {
+    _namaController.dispose();
+    _nikController.dispose();
+    _hpController.dispose();
+    _alamatController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const Color inputFillColor = Color(0xFFE8F5E9);
-    const Color iconColor = Color(0xFF388E3C);
     final viewModel = context.watch<KbViewModel>();
     String formattedDate = "${_tanggalTerpilih.day}/${_tanggalTerpilih.month}/${_tanggalTerpilih.year}";
 
@@ -90,23 +106,38 @@ class _KbFormPageState extends State<KbFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildField('Nama Lengkap :', 'Masukkan nama lengkap', _namaController),
-              
-              // NIK hanya angka
+              // Menggunakan _buildField (wildan2) tapi nanti isinya di-style ala Master
               _buildField(
-                'NIK :', 'Sesuai KTP', _nikController,
+                'Nama Lengkap :', 
+                'Masukkan nama lengkap', 
+                _namaController,
+                validator: (v) => (v == null || v.isEmpty) ? 'Nama Lengkap harus diisi.' : null,
+              ),
+              
+              _buildField(
+                'NIK :', 
+                'Sesuai KTP', 
+                _nikController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (v) => (v == null || v.isEmpty) ? 'NIK harus diisi.' : null,
               ),
               
-              // HP hanya angka
               _buildField(
-                'No Handphone :', 'Nomor aktif', _hpController,
+                'No Handphone :', 
+                'Nomor aktif', 
+                _hpController,
                 keyboardType: TextInputType.phone,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (v) => (v == null || v.isEmpty) ? 'Nomor Handphone harus diisi.' : null,
               ),
               
-              _buildField('Alamat :', 'Alamat sekarang', _alamatController),
+              _buildField(
+                'Alamat :', 
+                'Alamat sekarang', 
+                _alamatController,
+                validator: (v) => (v == null || v.isEmpty) ? 'Alamat harus diisi.' : null,
+              ),
 
               const Text('Tanggal :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 8),
@@ -114,22 +145,51 @@ class _KbFormPageState extends State<KbFormPage> {
                 onTap: () => _selectDate(context),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  decoration: BoxDecoration(color: inputFillColor, borderRadius: BorderRadius.circular(30)),
-                  child: Row(children: [const Icon(Icons.calendar_today, color: iconColor), const SizedBox(width: 10), Text(formattedDate)]),
+                  decoration: BoxDecoration(
+                    color: inputFillColor, 
+                    borderRadius: BorderRadius.circular(30),
+                    // Menggunakan style border dari Master untuk DatePicker juga agar konsisten
+                    border: Border.all(color: Colors.transparent), 
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: iconColor), 
+                      const SizedBox(width: 10), 
+                      Text(formattedDate, style: const TextStyle(fontSize: 16, color: iconColor, fontWeight: FontWeight.w500))
+                    ]
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
 
               const Text('Jenis Layanan KB :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              RadioListTile<String>(title: const Text('Jangka Pendek'), value: 'Jangka Pendek', groupValue: _layananTerpilih, onChanged: (v) => setState(() => _layananTerpilih = v), activeColor: iconColor),
-              RadioListTile<String>(title: const Text('Jangka Panjang'), value: 'Jangka Panjang', groupValue: _layananTerpilih, onChanged: (v) => setState(() => _layananTerpilih = v), activeColor: iconColor),
+              RadioListTile<String>(
+                title: const Text('Jangka Pendek'), 
+                value: 'Jangka Pendek', 
+                groupValue: _layananTerpilih, 
+                onChanged: (v) => setState(() => _layananTerpilih = v), 
+                activeColor: iconColor
+              ),
+              RadioListTile<String>(
+                title: const Text('Jangka Panjang'), 
+                value: 'Jangka Panjang', 
+                groupValue: _layananTerpilih, 
+                onChanged: (v) => setState(() => _layananTerpilih = v), 
+                activeColor: iconColor
+              ),
 
               const SizedBox(height: 30),
               Center(
                 child: ElevatedButton(
                   onPressed: viewModel.isLoading ? null : _submit,
-                  style: ElevatedButton.styleFrom(backgroundColor: iconColor, padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                  child: viewModel.isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("SIMPAN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: iconColor, 
+                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15), 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))
+                  ),
+                  child: viewModel.isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white) 
+                    : const Text("SIMPAN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               )
             ],
@@ -139,7 +199,17 @@ class _KbFormPageState extends State<KbFormPage> {
     );
   }
 
-  Widget _buildField(String label, String hint, TextEditingController controller, {TextInputType keyboardType = TextInputType.text, List<TextInputFormatter>? inputFormatters}) {
+  // Helper Widget yang Digabungkan (Logic Wildan + Style Master)
+  Widget _buildField(
+    String label, 
+    String hint, 
+    TextEditingController controller, 
+    {
+      TextInputType keyboardType = TextInputType.text, 
+      List<TextInputFormatter>? inputFormatters,
+      String? Function(String?)? validator
+    }
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -149,12 +219,35 @@ class _KbFormPageState extends State<KbFormPage> {
           const SizedBox(height: 8),
           TextFormField(
             controller: controller,
-            keyboardType: keyboardType, // BARU
-            inputFormatters: inputFormatters, // BARU
-            validator: (v) => v!.isEmpty ? 'Tidak boleh kosong' : null,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
+            validator: validator ?? (v) => v!.isEmpty ? 'Tidak boleh kosong' : null, // Default validator jika tidak ada
             decoration: InputDecoration(
-              hintText: hint, filled: true, fillColor: const Color(0xFFE8F5E9),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.grey),
+              filled: true, 
+              fillColor: inputFillColor,
+              // Style Border Cantik dari Master
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: BorderSide.none,
+              ),
+              errorBorder: OutlineInputBorder( // Style saat error
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: const BorderSide(color: errorColor, width: 2.0),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: const BorderSide(color: errorColor, width: 2.0),
+              ),
+              focusedBorder: OutlineInputBorder( // Style saat diklik
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: const BorderSide(color: iconColor, width: 1.5),
+              ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             ),
           ),

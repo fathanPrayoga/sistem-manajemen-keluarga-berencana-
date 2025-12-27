@@ -3,19 +3,23 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:app_pengaduan/viewmodels/kb_view_model.dart';
+import 'package:provider/provider.dart';
 import 'package:app_pengaduan/views/auth/login_page.dart';
 import 'package:app_pengaduan/views/dashboard.dart';
+import 'package:app_pengaduan/views/auth/verification.dart';
 import 'package:app_pengaduan/views/kategori_pengaduan.dart';
 import 'package:app_pengaduan/views/kb_list_page.dart';
 import 'package:app_pengaduan/views/keluarga_berencana.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+import 'package:provider/provider.dart';
+import 'package:app_pengaduan/viewmodels/auth_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -27,6 +31,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => KbViewModel()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: MaterialApp(
         title: 'Sistem Manajemen KB',
@@ -45,14 +50,24 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const LoginPage(),
+         home: Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            if (authProvider.user != null) {
+              if (authProvider.isEmailVerified) {
+                return const DashboardPage();
+              } else {
+                return const VerificationPage();
+              }
+            } else {
+              return const LoginPage();
+            }
+          },
+        ),
+         routes: {
+          '/login': (context) => const LoginPage(),
           '/dashboard': (context) => const DashboardPage(),
           '/kategori': (context) => const KategoriPengaduanPage(),
-          
-          '/KeluargaBerencana': (context) => const KbListPage(),
+          '/KeluargaBerencana': (context) => const KbListPage(
           '/FormKB': (context) => const KbFormPage(),
         },
       ),
