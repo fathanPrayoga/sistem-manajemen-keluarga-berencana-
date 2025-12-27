@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:app_pengaduan/views/auth/login_page.dart';
 import 'package:app_pengaduan/views/dashboard.dart';
 import 'package:app_pengaduan/views/kategori_pengaduan.dart';
