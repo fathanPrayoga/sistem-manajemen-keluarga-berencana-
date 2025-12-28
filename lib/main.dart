@@ -12,9 +12,16 @@ import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:app_pengaduan/viewmodels/auth_provider.dart';
 
+import 'package:app_pengaduan/services/data_seeder.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Seed dummy data (Will only run if collections are empty)
+  // TODO: Remove this in production or once seeded
+  await DataSeeder().seed();
+
   runApp(const MyApp());
 }
 
