@@ -90,43 +90,63 @@ class _KbListPageState extends State<KbListPage> {
                     ),
                     elevation: 3,
                     margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(15),
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFE8F5E9),
-                        child: Icon(Icons.person, color: Colors.green[800]),
-                      ),
-                      title: Text(
-                        data.nama,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                      subtitle: Text(
-                        "NIK: ${data.nik}\nLayanan: ${data.layanan}",
-                      ),
-                      isThreeLine: true,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Tombol Edit
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => Navigator.pushNamed(
-                              context,
-                              '/FormKB',
-                              arguments: data,
+                    child: Column(
+                      children: [
+                        ListTile(
+                          contentPadding: const EdgeInsets.all(15),
+                          leading: CircleAvatar(
+                            backgroundColor: const Color(0xFFE8F5E9),
+                            child: Icon(Icons.person, color: Colors.green[800]),
+                          ),
+                          title: Text(
+                            data.nama,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
                             ),
                           ),
-                          // Tombol Hapus dengan Konfirmasi
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () =>
-                                _confirmDelete(context, viewModel, data.id!),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "NIK: ${data.nik}\nLayanan: ${data.layanan}",
+                              ),
+                              const SizedBox(height: 8),
+                              _buildStatusChip(data.status),
+                            ],
                           ),
-                        ],
-                      ),
+                          isThreeLine: true,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Tombol Edit
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () => Navigator.pushNamed(
+                                  context,
+                                  '/FormKB',
+                                  arguments: data,
+                                ),
+                              ),
+                              // Tombol Hapus dengan Konfirmasi
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _confirmDelete(
+                                  context,
+                                  viewModel,
+                                  data.id!,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -136,6 +156,46 @@ class _KbListPageState extends State<KbListPage> {
         onPressed: () => Navigator.pushNamed(context, '/FormKB'),
         backgroundColor: const Color(0xFF388E3C),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color color;
+    String text;
+
+    switch (status) {
+      case 'confirmed':
+        color = Colors.blue;
+        text = 'Disetujui';
+        break;
+      case 'done':
+        color = Colors.green;
+        text = 'Selesai';
+        break;
+      case 'rejected':
+        color = Colors.red;
+        text = 'Ditolak';
+        break;
+      default:
+        color = Colors.orange;
+        text = 'Menunggu';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }
