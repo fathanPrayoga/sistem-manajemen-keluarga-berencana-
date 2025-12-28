@@ -25,6 +25,32 @@ class PengaduanModel {
     required this.createdAt,
   });
 
+  // --- Adapters for Backward Compatibility (from Local changes) ---
+  String get fullname => nama;
+  String get phone => noHp;
+  String get address => alamat;
+  String get description => keluhan;
+  
+  String get statusText {
+    switch (status.toLowerCase()) {
+      case 'pending':
+      case 'menunggu':
+        return 'Menunggu';
+      case 'processed':
+      case 'diproses':
+        return 'Diproses';
+      case 'done':
+      case 'selesai':
+        return 'Selesai';
+      case 'rejected':
+      case 'ditolak':
+        return 'Ditolak';
+      default:
+        return 'Menunggu';
+    }
+  }
+  // ----------------------------------------------------------------
+
   Map<String, dynamic> toMap() {
     return {
       'kategori': kategori,
@@ -41,17 +67,28 @@ class PengaduanModel {
 
   factory PengaduanModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    
+    // Handle timestamp which might vary or be null
+    DateTime date;
+    if (data['created_at'] != null) {
+      date = (data['created_at'] as Timestamp).toDate();
+    } else if (data['timestamp'] != null) {
+      date = (data['timestamp'] as Timestamp).toDate(); 
+    } else {
+      date = DateTime.now();
+    }
+
     return PengaduanModel(
       id: doc.id,
       kategori: data['kategori'] ?? '',
-      nama: data['nama'] ?? '',
+      nama: data['nama'] ?? data['fullname'] ?? 'Anonim',
       nik: data['nik'] ?? '',
-      noHp: data['no_hp'] ?? '',
-      alamat: data['alamat'] ?? '',
-      keluhan: data['keluhan'] ?? '',
-      imageUrl: data['image_url'],
+      noHp: data['no_hp'] ?? data['phone'] ?? '',
+      alamat: data['alamat'] ?? data['address'] ?? '',
+      keluhan: data['keluhan'] ?? data['description'] ?? '',
+      imageUrl: data['image_url'] ?? data['imageUrl'],
       status: data['status'] ?? 'menunggu',
-      createdAt: (data['created_at'] as Timestamp).toDate(),
+      createdAt: date,
     );
   }
 }
