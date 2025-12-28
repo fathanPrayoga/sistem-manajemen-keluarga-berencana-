@@ -10,6 +10,7 @@ import 'package:app_pengaduan/views/kategori_pengaduan.dart';
 import 'package:app_pengaduan/views/kb_list_page.dart';
 import 'package:app_pengaduan/views/keluarga_berencana.dart';
 import 'package:app_pengaduan/viewmodels/auth_provider.dart';
+import 'package:app_pengaduan/viewmodels/pengaduan_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => KbViewModel()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => PengaduanViewModel()),
       ],
       child: MaterialApp(
         title: 'Sistem Manajemen KB',
