@@ -9,6 +9,7 @@ import '../services/pengaduan_service.dart';
 import 'riwayat_page.dart';
 import 'notification_page.dart';
 import 'package:app_pengaduan/views/profile_page.dart';
+import '../utils/news_seeder.dart'; // Import Seeder
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -126,6 +127,16 @@ class DashboardContent extends StatelessWidget {
                     backgroundImage: AssetImage(
                       'assets/images/foto_dummy_1.jpg',
                     ),
+                  ),
+                  // Temporary Seeder Button
+                  IconButton(
+                    icon: const Icon(Icons.cloud_upload),
+                    onPressed: () async {
+                      await NewsSeeder.seedNews();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('News seeded!')),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -308,7 +319,7 @@ class TrendingCard extends StatelessWidget {
               bottom: 0,
               left: 0,
               right: 0,
-              height: 70,
+              height: 80, // Increased from 70 to 80 to prevent overflow
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.vertical(
