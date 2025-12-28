@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../widget/bottom_navbar.dart';
 import '../style/colors.dart';
 import '../style/text_style.dart';
+import '../model/kategori_pengaduan.dart';
 import 'pengaduan.dart';
 
 class KategoriPengaduanPage extends StatelessWidget {
@@ -9,57 +11,63 @@ class KategoriPengaduanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> kategoriList = [
-      {
-        'title': 'Pengaduan Bantuan Sosial (Bansos)',
-        'icon': Icons.volunteer_activism,
-      },
-      {
-        'title': 'Pengaduan Layanan Anak dan Keluarga',
-        'icon': Icons.family_restroom,
-      },
-      {
-        'title': 'Pengaduan Terkait Lansia dan Disabilitas',
-        'icon': Icons.elderly,
-      },
-      {'title': 'Pengaduan Bencana Sosial', 'icon': Icons.warning},
-      {'title': 'Pengaduan Kesehatan Mental', 'icon': Icons.psychology},
+    final List<KategoriPengaduan> kategoriList = const [
+      KategoriPengaduan(
+        id: 'bansos',
+        title: 'Pengaduan Bantuan Sosial (Bansos)',
+        icon: Icons.volunteer_activism,
+      ),
+      KategoriPengaduan(
+        id: 'anak',
+        title: 'Pengaduan Layanan Anak dan Keluarga',
+        icon: Icons.family_restroom,
+      ),
+      KategoriPengaduan(
+        id: 'lansia',
+        title: 'Pengaduan Terkait Lansia dan Disabilitas',
+        icon: Icons.elderly,
+      ),
+      KategoriPengaduan(
+        id: 'bencana',
+        title: 'Pengaduan Bencana Sosial',
+        icon: Icons.warning,
+      ),
+      KategoriPengaduan(
+        id: 'mental',
+        title: 'Pengaduan Kesehatan Mental',
+        icon: Icons.psychology,
+      ),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.background),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
           'Laporkan Keluhan Anda',
           style: AppTextStyles.headline1,
         ),
         backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.background,
         centerTitle: true,
       ),
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: GridView.builder(
           itemCount: kategoriList.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            mainAxisSpacing: 12,
             crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
             childAspectRatio: 1.2,
           ),
           itemBuilder: (context, index) {
             final kategori = kategoriList[index];
+
             return GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        PengaduanPage(kategori: kategori['title']),
+                    builder: (_) => PengaduanPage(kategori: kategori.id),
                   ),
                 );
               },
@@ -69,7 +77,7 @@ class KategoriPengaduanPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.textLight.withOpacity(0.3),
+                      color: Colors.black.withOpacity(0.1),
                       blurRadius: 6,
                       offset: const Offset(0, 3),
                     ),
@@ -78,15 +86,12 @@ class KategoriPengaduanPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(kategori['icon'], color: AppColors.primary, size: 40),
+                    Icon(kategori.icon, size: 40, color: AppColors.primary),
                     const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        kategori['title'],
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyText.copyWith(fontSize: 14),
-                      ),
+                    Text(
+                      kategori.title,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyText.copyWith(fontSize: 14),
                     ),
                   ],
                 ),
