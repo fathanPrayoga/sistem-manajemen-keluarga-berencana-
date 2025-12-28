@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:app_pengaduan/style/colors.dart';
 import 'package:app_pengaduan/style/text_style.dart';
-import 'verification.dart';
+import '../../viewmodels/auth_provider.dart';
+import 'package:provider/provider.dart';
+// import 'verification.dart'; // No longer needed
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -18,37 +20,56 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  String? _selectedRole;
-  bool _isLoading = false;
+  // String? _selectedRole; // No longer needed
 
   void _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedRole == null) {
+
+    // No role validation needed (default 'user')
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final success = await authProvider.signUp(
+      _emailController.text,
+      _passwordController.text,
+      _nameController.text,
+    );
+
+    if (success) {
+      if (!mounted) return;
+      // Send Email Verification (handled in service, but we can show message)
+      final user = authProvider.user;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Registrasi Berhasil! Silakan cek email untuk verifikasi.',
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Registrasi Berhasil!')));
+      }
+
+      // Navigate to Dashboard (main.dart will handle this via Stream/Provider)
+      // Or pop to login if you want them to login manually?
+      // Usually SignUp logs them in automatically.
+      // Since main.dart is listening to AuthProvider, it might redirect automatically.
+      // But explicit pushReplacement is clearer UX.
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/dashboard', (route) => false);
+    } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Anda harus memilih salah satu peran.')),
+        const SnackBar(
+          content: Text('Registrasi Gagal. Email mungkin sudah terdaftar.'),
+        ),
       );
-      return;
     }
-
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    print('Register (Tampilan Saja) Sukses. Navigasi ke Verifikasi.');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pendaftaran (Simulasi) sukses! Navigasi ke Verifikasi.'),
-      ),
-    );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            VerificationPage(emailOrPhone: _emailController.text),
-      ),
-    );
   }
 
   @override
@@ -71,9 +92,7 @@ class _RegisterPageState extends State<RegisterPage> {
               fit: BoxFit.cover,
             ),
           ),
-          Container(
-            color: AppColors.authBackgroundOverlay,
-          ), // Ganti dengan AppColors
+          Container(color: AppColors.authBackgroundOverlay),
 
           SafeArea(
             child: SingleChildScrollView(
@@ -140,63 +159,32 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
 
                     const SizedBox(height: 30),
-                    const Text(
-                      'Masuk sebagai:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ), // Ganti dengan AppColors
-                    const SizedBox(height: 12),
 
-                    // Pilihan Peran
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildRoleSelection(
-                            text: 'Tukang Pijat',
-                            value: 'tukang_pijat',
-                            icon: Icons.accessibility_new,
-                            currentGroupValue: _selectedRole,
-                            onChanged: (value) =>
-                                setState(() => _selectedRole = value),
+                    // Role Selection Removed
+                    const SizedBox(height: 10),
+                    Consumer<AuthProvider>(
+                      builder: (context, auth, child) {
+                        return ElevatedButton(
+                          onPressed: auth.isLoading ? null : _handleRegister,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildRoleSelection(
-                            text: 'Mencari Pijat',
-                            value: 'mencari_pijat',
-                            icon: Icons.search,
-                            currentGroupValue: _selectedRole,
-                            onChanged: (value) =>
-                                setState(() => _selectedRole = value),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 40),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _handleRegister,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: AppColors.background,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Daftar',
-                              style: AppTextStyles.buttonText,
-                            ),
+                          child: auth.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.background,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Daftar',
+                                  style: AppTextStyles.buttonText,
+                                ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 50),
@@ -230,7 +218,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // Helper _buildTextField diupdate untuk menggunakan AppColors
+  // Helper _buildTextField (Same as before)
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -268,57 +256,6 @@ class _RegisterPageState extends State<RegisterPage> {
         contentPadding: const EdgeInsets.symmetric(
           vertical: 16.0,
           horizontal: 16.0,
-        ),
-      ),
-    );
-  }
-
-  // Helper _buildRoleSelection diupdate untuk menggunakan AppColors
-  Widget _buildRoleSelection({
-    required String text,
-    required String value,
-    required IconData icon,
-    required String? currentGroupValue,
-    required ValueChanged<String?> onChanged,
-  }) {
-    final bool isSelected = currentGroupValue == value;
-    return InkWell(
-      onTap: () => onChanged(value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
-              : AppColors.background, // Ganti dengan AppColors
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.textLight.withOpacity(
-                    0.5,
-                  ), // Ganti dengan AppColors
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primary : AppColors.textLight,
-              size: 30,
-            ), // Ganti dengan AppColors
-            const SizedBox(height: 5),
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.textDark, // Ganti dengan AppColors
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
         ),
       ),
     );
