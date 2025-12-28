@@ -3,7 +3,6 @@ import 'package:app_pengaduan/style/colors.dart';
 import 'package:app_pengaduan/style/text_style.dart';
 import '../../viewmodels/auth_provider.dart';
 import 'package:provider/provider.dart';
-// import 'verification.dart'; // No longer needed
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,12 +19,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  // String? _selectedRole; // No longer needed
-
   void _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // No role validation needed (default 'user')
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
@@ -37,7 +32,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (success) {
       if (!mounted) return;
-      // Send Email Verification (handled in service, but we can show message)
+
       final user = authProvider.user;
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification();
@@ -54,11 +49,6 @@ class _RegisterPageState extends State<RegisterPage> {
         ).showSnackBar(const SnackBar(content: Text('Registrasi Berhasil!')));
       }
 
-      // Navigate to Dashboard (main.dart will handle this via Stream/Provider)
-      // Or pop to login if you want them to login manually?
-      // Usually SignUp logs them in automatically.
-      // Since main.dart is listening to AuthProvider, it might redirect automatically.
-      // But explicit pushReplacement is clearer UX.
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil('/dashboard', (route) => false);

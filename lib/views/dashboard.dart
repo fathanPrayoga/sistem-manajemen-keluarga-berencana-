@@ -1,6 +1,7 @@
 import 'package:app_pengaduan/views/kategori_pengaduan.dart';
 import 'package:app_pengaduan/views/konsultasi.dart';
 import 'package:flutter/material.dart';
+import 'package:app_pengaduan/views/profile_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -197,12 +198,22 @@ class DashboardPage extends StatelessWidget {
         ),
       ),
 
-      // ✅ Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.black,
+        currentIndex:
+            0, // Always 0 for now as strict navigation isn't requested yet
+        onTap: (index) {
+          if (index == 3) {
+            // Profile Tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
+            );
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),

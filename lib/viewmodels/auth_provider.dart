@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_services.dart';
+import '../model/user_model.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -14,9 +16,38 @@ class AuthProvider with ChangeNotifier {
     _checkCurrentUser();
   }
 
-  void _checkCurrentUser() {
+  UserModel? _currentUserData;
+  UserModel? get currentUserData => _currentUserData;
+
+  // Check if email is verified
+  bool get isEmailVerified => _user?.emailVerified ?? false;
+
+  void _checkCurrentUser() async {
     _user = _authService.currentUser;
+    if (_user != null) {
+      await fetchUserData(); // Fetch user
+    }
     notifyListeners();
+  }
+
+  Future<void> fetchUserData() async {
+    if (_user != null) {
+      try {
+        DocumentSnapshot doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .get();
+
+        if (doc.exists) {
+          _currentUserData = UserModel.fromMap(
+            doc.data() as Map<String, dynamic>,
+          );
+          notifyListeners();
+        }
+      } catch (e) {
+        print("Error fetching user data: $e");
+      }
+    }
   }
 
   Future<bool> signIn(String email, String password) async {
@@ -25,6 +56,11 @@ class AuthProvider with ChangeNotifier {
 
     try {
       _user = await _authService.signIn(email, password);
+
+      if (_user != null) {
+        await fetchUserData(); // Fetch data
+      }
+
       _isLoading = false;
       notifyListeners();
       return _user != null;
@@ -41,6 +77,11 @@ class AuthProvider with ChangeNotifier {
 
     try {
       _user = await _authService.signUp(email, password, name);
+
+      if (_user != null) {
+        await fetchUserData();
+      }
+
       _isLoading = false;
       notifyListeners();
       return _user != null;
@@ -54,13 +95,11 @@ class AuthProvider with ChangeNotifier {
   Future<void> signOut() async {
     await _authService.signOut();
     _user = null;
+    _currentUserData = null; // Clear user data
     notifyListeners();
   }
 
-  // Check if email is verified
-  bool get isEmailVerified => _user?.emailVerified ?? false;
-
-  // Reload user to get latest status (e.g. after clicking email link)
+  // Reload user
   Future<void> reloadUser() async {
     User? currentUser = _authService.currentUser;
     if (currentUser != null) {
