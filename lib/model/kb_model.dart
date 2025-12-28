@@ -6,6 +6,7 @@ class KbModel {
   String alamat;
   String layanan;
   DateTime tanggal;
+  String status;
 
   KbModel({
     this.id,
@@ -15,17 +16,19 @@ class KbModel {
     required this.alamat,
     required this.layanan,
     required this.tanggal,
+    this.status = 'pending',
   });
 
   Map<String, dynamic> toJson() => {
-        'nama': nama,
-        'nik': nik,
-        'hp': hp,
-        'alamat': alamat,
-        'layanan': layanan,
-        'tanggal': tanggal.toIso8601String(),
-        'created_at': DateTime.now().toIso8601String(),
-      };
+    'nama': nama,
+    'nik': nik,
+    'hp': hp,
+    'alamat': alamat,
+    'layanan': layanan,
+    'tanggal': tanggal.toIso8601String(),
+    'status': status,
+    'created_at': DateTime.now().toIso8601String(),
+  };
 
   factory KbModel.fromMap(Map<String, dynamic> map, String id) {
     return KbModel(
@@ -36,6 +39,7 @@ class KbModel {
       alamat: map['alamat'] ?? '',
       layanan: map['layanan'] ?? '',
       tanggal: DateTime.parse(map['tanggal']),
+      status: map['status'] ?? 'pending',
     );
   }
 }
