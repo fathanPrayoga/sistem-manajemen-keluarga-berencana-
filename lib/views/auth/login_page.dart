@@ -22,27 +22,13 @@ class _LoginPageState extends State<LoginPage> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // UI Loading state is now handled by Provider's notifyListeners if we wrapped with Consumer,
-    // but here we can just await the result.
-    // Ideally we should wrap the button in a Consumer<AuthProvider> to show loading spinner.
-    // For now, let's keep local loading state for simplicity or use Provider's state.
-
     bool success = await authProvider.signIn(
       _emailController.text,
       _passwordController.text,
     );
 
     if (success) {
-      // Navigation is handled by main.dart wrapper mostly, but explicit pushReplacement is safer for Login Pages
-      // However, main.dart checks 'home', but since we are already IN the widget tree,
-      // we might need to manually navigate or rely on a stream.
-      // The plan in main.dart uses "home: Consumer..." which works on STARTUP.
-      // For runtime login, better to navigate manually.
       if (!mounted) return;
-      // print('Login Sukses');
-      // No need to navigate if main.dart rebuilds?
-      // Actually main.dart rebuilt only if we use a StreamProvider or if this Widget is child of the switch.
-      // Since we are pushing routes, let's manually push to Dashboard to be safe and responsive.
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
       if (!mounted) return;
@@ -224,14 +210,14 @@ class _LoginPageState extends State<LoginPage> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ), // Ganti dengan AppColors
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
           borderSide: BorderSide(
             color: AppColors.primary.withOpacity(0.8),
             width: 2.0,
           ),
-        ), // Ganti dengan AppColors
+        ),
         contentPadding: const EdgeInsets.symmetric(
           vertical: 16.0,
           horizontal: 16.0,
