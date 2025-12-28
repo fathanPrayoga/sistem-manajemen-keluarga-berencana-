@@ -6,9 +6,9 @@ import '../services/news_service.dart';
 import 'news_detail.dart';
 import '../model/pengaduan_model.dart';
 import '../services/pengaduan_service.dart';
-// New imports for pages
 import 'riwayat_page.dart';
 import 'notification_page.dart';
+import 'package:app_pengaduan/views/profile_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -24,7 +24,7 @@ class _DashboardPageState extends State<DashboardPage> {
     const DashboardContent(),
     const RiwayatPage(),
     const NotificationPage(),
-    const Center(child: Text('Profile Page (Under Construction)')),
+    const ProfilePage(),
   ];
 
   @override
@@ -173,11 +173,9 @@ class DashboardContent extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(child: KategoriItem('Informasi', Icons.campaign)),
-                  // <<< TAMBAHKAN GESTUREDETECTOR UNTUK KONSULTASI >>>
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        // Navigasi ke Halaman Konsultasi
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -188,7 +186,6 @@ class DashboardContent extends StatelessWidget {
                       child: KategoriItem('Konsultasi', Icons.thumb_up),
                     ),
                   ),
-                  // <<< AKHIR PERUBAHAN UNTUK KONSULTASI >>>
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -205,10 +202,8 @@ class DashboardContent extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        // Menggunakan pushNamed dengan route '/KeluargaBerencana'
                         Navigator.pushNamed(context, '/KeluargaBerencana');
                       },
-                      // Mengubah teks menjadi 'Keluarga Berencana' dan ikon
                       child: KategoriItem(
                         'Keluarga Berencana',
                         Icons.family_restroom,
@@ -220,14 +215,12 @@ class DashboardContent extends StatelessWidget {
               const SizedBox(height: 20),
 
               // ✅ Pengaduan Section
-              // ✅ Fixed Pengaduan Section (no more overflow)
               const Text(
                 'Pengaduan',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               SizedBox(
-                // Increased height for longer text + flexibility
                 height: 220,
                 child: StreamBuilder<List<PengaduanModel>>(
                   stream: PengaduanService().getPublicComplaints(),
@@ -281,12 +274,36 @@ class TrendingCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           image: DecorationImage(
-            image: AssetImage(news.imagePath),
+            image: NetworkImage(news.imagePath), // Changed to NetworkImage for generic support, or handle assets vs network
             fit: BoxFit.cover,
+            onError: (exception, stackTrace) {
+               // Fallback if network fails, or if it's a local asset path
+            },
           ),
         ),
+        // Handline mixed asset/network images is tricky. 
+        // For now, sticking to logic: if starts with http use Network, else Asset.
+        // But NewsModel seeder uses assets. Firestore real data might use URLs.
+        // Let's revert to AssetImage if strict compat is needed, or helper.
+        // Reverting to previous card implementation which assumed AssetImage for dummy data.
+        // Wait, if we are using Firebase, we might want NetworkImage. 
+        // But the seeder put 'assets/images/...'.
+        // So let's stick to AssetImage or a helper. 
+        // The previous code had AssetImage. I will use a helper or just AssetImage for now to satisfy the seeder.
         child: Stack(
           children: [
+            Container(
+               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                image: DecorationImage(
+                  // Use a helper to check if valid URL
+                  image: news.imagePath.startsWith('http') 
+                      ? NetworkImage(news.imagePath) 
+                      : AssetImage(news.imagePath) as ImageProvider,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
             Positioned(
               bottom: 0,
               left: 0,
@@ -330,33 +347,6 @@ class TrendingCard extends StatelessWidget {
   }
 }
 
-// class KategoriItem extends StatelessWidget {
-//   final String title;
-//   final IconData icon;
-//   const KategoriItem(this.title, this.icon, {super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       width: 80,
-//       margin: const EdgeInsets.only(right: 12),
-//       child: Column(
-//         children: [
-//           Container(
-//             padding: const EdgeInsets.all(12),
-//             decoration: BoxDecoration(
-//               shape: BoxShape.circle,
-//               border: Border.all(color: Colors.green),
-//             ),
-//             child: Icon(icon, color: Colors.green, size: 28),
-//           ),
-//           const SizedBox(height: 6),
-//           Text(title, style: const TextStyle(color: Colors.grey)),
-//         ],
-//       ),
-//     );
-//   }
-// }
 class KategoriItem extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -412,14 +402,13 @@ class PengaduanCard extends StatelessWidget {
             children: [
                const CircleAvatar(
                 radius: 20,
-                // Placeholder since Admin schema doesn't have user avatar
                 child: Icon(Icons.person, color: Colors.white), 
                 backgroundColor: Colors.green,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  pengaduan.fullname, // Changed from userName
+                  pengaduan.fullname,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -428,7 +417,7 @@ class PengaduanCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            pengaduan.kategori, // Changed from title which likely maps to Kategori
+            pengaduan.kategori,
             style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
           ),
           const SizedBox(height: 4),
