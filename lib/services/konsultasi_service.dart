@@ -32,11 +32,14 @@ class KonsultasiService {
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // update meta info for the consultation room
+    // update meta info for the consultation room (store timestamp and increment admin unread)
     await _firestore.collection('konsultasi').doc(categoryId).set({
       'lastMessage': text,
+      'lastMessageTime': FieldValue.serverTimestamp(),
       'lastUpdated': FieldValue.serverTimestamp(),
       'lastSenderId': userId,
+      'userName': userName,
+      'unreadCountAdmin': FieldValue.increment(1),
     }, SetOptions(merge: true));
 
     // Create a notification entry that a Cloud Function / admin backend can listen to and send FCM
