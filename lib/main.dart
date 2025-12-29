@@ -17,7 +17,7 @@ import 'package:app_pengaduan/viewmodels/pengaduan_view_model.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
+
   // Seed dummy data (Will only run if collections are empty)
   // TODO: Remove this in production or once seeded
   // await DataSeeder().seed(); // GlobalDataSeeder is now static and user-triggered

@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import '../style/colors.dart';
 import '../style/text_style.dart';
+import '../services/konsultasi_service.dart';
 
 class ChatKonsultasiPage extends StatefulWidget {
   final String title;
+  final String categoryId;
 
-  const ChatKonsultasiPage({super.key, required this.title});
+  const ChatKonsultasiPage({
+    super.key,
+    required this.title,
+    required this.categoryId,
+  });
 
   @override
   State<ChatKonsultasiPage> createState() => _ChatKonsultasiPageState();
@@ -13,38 +22,101 @@ class ChatKonsultasiPage extends StatefulWidget {
 
 class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
   final TextEditingController _textController = TextEditingController();
-  final List<Widget> _messages = [];
+  final ScrollController _scrollController = ScrollController();
+  final KonsultasiService _service = KonsultasiService();
+  String? _userId;
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
-    _messages.add(
-      _buildConsultantMessage(
-        context,
-        'Halo, Selamat siang. Silakan ceritakan kondisi atau keluhan yang sedang Anda alami. Saya akan membantu sebisa mungkin dalam sesi konsultasi ini.',
-      ),
-    );
-    _messages.add(const SizedBox(height: 10));
+    final user = FirebaseAuth.instance.currentUser;
+    _userId = user?.uid;
+
+    // Try to fetch display name from users collection
+    if (_userId != null) {
+      FirebaseFirestore.instance.collection('users').doc(_userId).get().then((
+        doc,
+      ) {
+        if (doc.exists) {
+          setState(() {
+            _userName = (doc.data() ?? {})['name'] ?? _userName;
+          });
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _textController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _handleSubmitted(String text) {
-    if (text.trim().isEmpty) return;
+  String _formatTimestamp(dynamic ts) {
+    if (ts == null) return '';
+    DateTime dt;
+    if (ts is Timestamp) {
+      dt = ts.toDate();
+    } else if (ts is int) {
+      dt = DateTime.fromMillisecondsSinceEpoch(ts);
+    } else if (ts is DateTime) {
+      dt = ts;
+    } else {
+      return '';
+    }
 
-    setState(() {
-      _messages.add(_buildUserMessage(context, text));
-      _messages.add(const SizedBox(height: 10));
-    });
-
-    _textController.clear();
+    try {
+      return DateFormat.Hm().format(dt); // e.g., 14:35
+    } catch (e) {
+      return '';
+    }
   }
 
-  Widget _buildConsultantMessage(BuildContext context, String text) {
+  Future<void> _handleSubmitted(String text) async {
+    if (text.trim().isEmpty || _userId == null) return;
+
+    await _service.sendMessage(
+      widget.categoryId,
+      _userId!,
+      _userName ?? 'User',
+      text.trim(),
+    );
+    _textController.clear();
+
+    // Scroll to bottom after short delay
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Widget _buildMessageItem(Map<String, dynamic> data) {
+    final senderId = data['senderId'] as String? ?? '';
+    final text = data['text'] as String? ?? '';
+    final senderName = data['senderName'] as String? ?? '';
+    final timestamp = data['timestamp'];
+    final formattedTs = _formatTimestamp(timestamp);
+
+    if (senderId == _userId) {
+      return _buildUserMessage(context, text, formattedTs);
+    } else {
+      return _buildConsultantMessage(context, text, senderName, formattedTs);
+    }
+  }
+
+  Widget _buildConsultantMessage(
+    BuildContext context,
+    String text,
+    String senderName,
+    String timestamp,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -71,17 +143,37 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
                 bottomRight: Radius.circular(15),
               ),
               border: Border.all(color: AppColors.primary, width: 0.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
             ),
-            child: Text(
-              text,
-              style: AppTextStyles.caption.copyWith(color: AppColors.textDark),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  senderName,
+                  style: AppTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  text,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textDark,
+                  ),
+                ),
+                if (timestamp.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Text(
+                      timestamp,
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: 9,
+                        color: AppColors.textDark.withOpacity(0.6),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
@@ -89,7 +181,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
     );
   }
 
-  Widget _buildUserMessage(BuildContext context, String text) {
+  Widget _buildUserMessage(
+    BuildContext context,
+    String text,
+    String timestamp,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,19 +202,27 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
                 bottomLeft: Radius.circular(15),
                 bottomRight: Radius.circular(15),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
             ),
-            child: Text(
-              text,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.background,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  text,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.background,
+                  ),
+                ),
+                if (timestamp.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    timestamp,
+                    style: AppTextStyles.caption.copyWith(
+                      fontSize: 9,
+                      color: AppColors.background.withOpacity(0.85),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
@@ -231,13 +335,32 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
       body: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              reverse: true,
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _messages,
-              ),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _service.messagesStream(widget.categoryId),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Terjadi kesalahan: \\${snapshot.error}'),
+                  );
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final docs = snapshot.data!.docs;
+
+                return ListView.separated(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: docs.length,
+                  shrinkWrap: true,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    return _buildMessageItem(data);
+                  },
+                );
+              },
             ),
           ),
           _buildMessageInput(context),
