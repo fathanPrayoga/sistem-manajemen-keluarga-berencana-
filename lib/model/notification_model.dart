@@ -1,39 +1,49 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 
 class NotificationModel {
   final String id;
+  final String recipientNik; // Changed to NIK
   final String title;
   final String body;
-  final String time; // Formatted time string
+  final String time; 
   final bool isRead;
+  final DateTime createdAt;
 
   NotificationModel({
     required this.id,
+    required this.recipientNik,
     required this.title,
     required this.body,
     required this.time,
     required this.isRead,
+    required this.createdAt,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'recipientNik': recipientNik,
+      'title': title,
+      'body': body,
+      'isRead': isRead,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
 
   factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     
     // Timestamp handling
-    Timestamp? ts = data['timestamp'] ?? data['created_at'];
-    String formattedTime = '';
-    if (ts != null) {
-      formattedTime = _formatTimeAgo(ts.toDate());
-    } else {
-      formattedTime = 'Baru saja';
-    }
+    Timestamp? ts = data['createdAt'] ?? data['timestamp'];
+    DateTime date = ts != null ? ts.toDate() : DateTime.now();
 
     return NotificationModel(
       id: doc.id,
+      recipientNik: data['recipientNik'] ?? '',
       title: data['title'] ?? 'Pemberitahuan',
       body: data['body'] ?? '',
-      time: formattedTime,
-      isRead: data['is_read'] ?? false,
+      time: _formatTimeAgo(date),
+      isRead: data['isRead'] ?? false,
+      createdAt: date,
     );
   }
 

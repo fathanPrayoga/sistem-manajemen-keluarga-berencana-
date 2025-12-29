@@ -12,7 +12,7 @@ import 'package:app_pengaduan/views/keluarga_berencana.dart';
 import 'package:app_pengaduan/viewmodels/auth_provider.dart';
 import 'package:app_pengaduan/viewmodels/pengaduan_view_model.dart';
 
-import 'package:app_pengaduan/services/data_seeder.dart';
+// import 'package:app_pengaduan/services/data_seeder.dart'; // Deleted
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +20,7 @@ void main() async {
   
   // Seed dummy data (Will only run if collections are empty)
   // TODO: Remove this in production or once seeded
-  await DataSeeder().seed();
+  // await DataSeeder().seed(); // GlobalDataSeeder is now static and user-triggered
 
   runApp(const MyApp());
 }

@@ -5,16 +5,36 @@ class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Stream of Notifications
-  // TODO: Add userId filter when auth is ready: .where('user_id', isEqualTo: uid)
-  Stream<List<NotificationModel>> getNotifications() {
+  // Stream of Notifications
+  // Filter by recipientNik
+  Stream<List<NotificationModel>> getNotifications(String nik) {
     return _firestore
-        .collection('notifications') // Assumed collection name
-        .orderBy('created_at', descending: true) // Assumed field
+        .collection('notifications')
+        .where('recipientNik', isEqualTo: nik)
+        // .orderBy('createdAt', descending: true) // Commented out to test Index issue
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
           .map((doc) => NotificationModel.fromFirestore(doc))
           .toList();
     });
+  }
+
+  // Create a Notification (For Admin / Testing)
+  Future<void> sendNotification({
+    required String nik,
+    required String title,
+    required String body,
+  }) async {
+    await _firestore.collection('notifications').add({
+      'recipientNik': nik,
+      'title': title,
+      'body': body,
+      'isRead': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+  Future<void> deleteNotification(String id) async {
+    await _firestore.collection('notifications').doc(id).delete();
   }
 }
