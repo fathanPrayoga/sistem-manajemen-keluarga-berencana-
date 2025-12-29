@@ -33,15 +33,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
     final user = FirebaseAuth.instance.currentUser;
     _userId = user?.uid;
 
-    // Try to fetch display name from users collection
+    // Try to fetch display name and NIK from users collection
     if (_userId != null) {
       FirebaseFirestore.instance.collection('users').doc(_userId).get().then((
         doc,
       ) {
         if (doc.exists) {
-          setState(() {
-            _userName = (doc.data() ?? {})['name'] ?? _userName;
-          });
+          final data = doc.data() ?? {};
+          if (mounted) {
+            setState(() {
+              _userName = data['name'] ?? _userName;
+            });
+          }
         }
       });
     }
@@ -76,6 +79,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
 
   Future<void> _handleSubmitted(String text) async {
     if (text.trim().isEmpty || _userId == null) return;
+
+    // Ensure NIK is loaded (though Guard in Dashboard should guarantee it)
+    // If null, we might send empty string or handle error.
+    // For now, defaulting to empty string if not loaded yet to prevent crash.
 
     await _service.sendMessage(
       widget.categoryId,
@@ -336,7 +343,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _service.messagesStream(widget.categoryId),
+              stream: _userId == null
+                  ? const Stream.empty()
+                  : _service.messagesStream(widget.categoryId, _userId!),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(

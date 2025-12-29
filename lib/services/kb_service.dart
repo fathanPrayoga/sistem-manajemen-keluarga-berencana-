@@ -9,9 +9,10 @@ class FirebaseService {
     await _firestore.collection(collectionName).add(data.toJson());
   }
 
-  Future<List<KbModel>> getPendaftaran() async {
+  Future<List<KbModel>> getPendaftaran(String userId) async {
     QuerySnapshot snapshot = await _firestore
         .collection(collectionName)
+        .where('userId', isEqualTo: userId)
         .orderBy('created_at', descending: true)
         .get();
     return snapshot.docs.map((doc) {

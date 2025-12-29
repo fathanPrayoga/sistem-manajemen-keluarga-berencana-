@@ -1,5 +1,6 @@
 class KbModel {
   String? id;
+  String? userId; // Added userId
   String nama;
   String nik;
   String hp;
@@ -10,6 +11,7 @@ class KbModel {
 
   KbModel({
     this.id,
+    this.userId, // Added to constructor
     required this.nama,
     required this.nik,
     required this.hp,
@@ -20,6 +22,7 @@ class KbModel {
   });
 
   Map<String, dynamic> toJson() => {
+    'userId': userId, // Added to JSON
     'nama': nama,
     'nik': nik,
     'hp': hp,
@@ -33,6 +36,7 @@ class KbModel {
   factory KbModel.fromMap(Map<String, dynamic> map, String id) {
     return KbModel(
       id: id,
+      userId: map['userId'], // Added from map
       nama: map['nama'] ?? '',
       nik: map['nik'] ?? '',
       hp: map['hp'] ?? '',

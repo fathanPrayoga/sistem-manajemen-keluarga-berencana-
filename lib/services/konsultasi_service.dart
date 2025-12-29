@@ -3,11 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class KonsultasiService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Stream messages for a specific consultation category
-  Stream<QuerySnapshot> messagesStream(String categoryId) {
+  /// Stream messages for a specific consultation category and user (Private Chat)
+  Stream<QuerySnapshot> messagesStream(String categoryId, String userId) {
     return _firestore
         .collection('konsultasi')
         .doc(categoryId)
+        .collection('chats') // [NEW] Sub-collection for private chats
+        .doc(userId) // [NEW] Document per user
         .collection('messages')
         .orderBy('timestamp')
         .snapshots();
@@ -20,10 +22,14 @@ class KonsultasiService {
     String userName,
     String text,
   ) async {
-    final messagesRef = _firestore
+    // 1. Write Message to Private Path
+    final chatDocRef = _firestore
         .collection('konsultasi')
         .doc(categoryId)
-        .collection('messages');
+        .collection('chats')
+        .doc(userId);
+
+    final messagesRef = chatDocRef.collection('messages');
 
     await messagesRef.add({
       'senderId': userId,
@@ -32,17 +38,23 @@ class KonsultasiService {
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // update meta info for the consultation room
-    await _firestore.collection('konsultasi').doc(categoryId).set({
+    // 2. Update Metadata for Admin Inbox List
+    // This allows Admin to see "Who chatted recently?"
+    await chatDocRef.set({
+      'userId': userId,
+      'userName': userName,
       'lastMessage': text,
       'lastUpdated': FieldValue.serverTimestamp(),
       'lastSenderId': userId,
+      'isReadByAdmin': false, // Flag for Admin UI
     }, SetOptions(merge: true));
 
-    // Create a notification entry that a Cloud Function / admin backend can listen to and send FCM
+    // 3. Trigger Notification (Standard FCM Trigger)
     await _firestore.collection('notifications').add({
       'type': 'konsultasi_message',
       'categoryId': categoryId,
+      'threadId':
+          userId, // Important: Admin needs to know WHICH user thread to open
       'title': userName,
       'body': text,
       'fromUserId': userId,

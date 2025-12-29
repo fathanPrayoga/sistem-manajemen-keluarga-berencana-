@@ -3,15 +3,76 @@ import 'package:provider/provider.dart';
 import '../viewmodels/auth_provider.dart';
 import '../style/colors.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nameController;
+  late TextEditingController _nikController;
+  late TextEditingController _phoneController;
+  late TextEditingController _addressController;
+  late TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthProvider>().currentUserData;
+    _nameController = TextEditingController(text: user?.name ?? '');
+    _nikController = TextEditingController(text: user?.nik ?? '');
+    _phoneController = TextEditingController(text: user?.phone ?? '');
+    _addressController = TextEditingController(text: user?.address ?? '');
+    _emailController = TextEditingController(text: user?.email ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _nikController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveProfile() async {
+    if (_formKey.currentState!.validate()) {
+      final success = await context.read<AuthProvider>().updateProfile(
+        name: _nameController.text,
+        nik: _nikController.text,
+        phone: _phoneController.text,
+        address: _addressController.text,
+      );
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Profil berhasil diperbarui"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Gagal memperbarui profil"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         final user = authProvider.currentUserData;
-
         final primaryColor = AppColors.primary;
         const backgroundColor = Color(0xFFE0E0E0);
         const itemsBgColor = Colors.white;
@@ -27,7 +88,7 @@ class ProfilePage extends StatelessWidget {
           body: SingleChildScrollView(
             child: Column(
               children: [
-                Container(
+                SizedBox(
                   height: 240,
                   child: Stack(
                     children: [
@@ -126,7 +187,7 @@ class ProfilePage extends StatelessWidget {
                                     ),
                                   ),
                                   child: const Icon(
-                                    Icons.camera_alt,
+                                    Icons.edit,
                                     color: Colors.white,
                                     size: 20,
                                   ),
@@ -141,8 +202,6 @@ class ProfilePage extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 10),
-
-                // Name
                 Text(
                   user.name,
                   style: const TextStyle(
@@ -151,81 +210,89 @@ class ProfilePage extends StatelessWidget {
                     color: Colors.black87,
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // Form Fields
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      _buildProfileItem(
-                        'Nama Lengkap',
-                        user.name,
-                        itemsBgColor,
-                      ),
-                      _buildProfileItem('NIK', user.nik ?? '-', itemsBgColor),
-                      _buildProfileItem('Email', user.email, itemsBgColor),
-                      _buildProfileItem(
-                        'No Handphone',
-                        user.phone ?? '-',
-                        itemsBgColor,
-                      ),
-                      _buildProfileItem(
-                        'Alamat',
-                        user.address ?? '-',
-                        itemsBgColor,
-                      ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        _buildEditableProfileItem(
+                          'Nama Lengkap',
+                          _nameController,
+                          itemsBgColor,
+                        ),
+                        _buildEditableProfileItem(
+                          'NIK',
+                          _nikController,
+                          itemsBgColor,
+                          keyboardType: TextInputType.number,
+                        ),
+                        // Email (ReadOnly)
+                        _buildProfileItem('Email', user.email, itemsBgColor),
+                        _buildEditableProfileItem(
+                          'No Handphone',
+                          _phoneController,
+                          itemsBgColor,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        _buildEditableProfileItem(
+                          'Alamat',
+                          _addressController,
+                          itemsBgColor,
+                          maxLines: 3,
+                        ),
 
-                      const SizedBox(height: 30),
+                        const SizedBox(height: 30),
 
-                      // Simpan / Logout Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Fitur Simpan akan segera hadir"),
+                        // Simpan Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: authProvider.isLoading
+                                ? null
+                                : _saveProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black,
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            );
+                            ),
+                            child: authProvider.isLoading
+                                ? const CircularProgressIndicator()
+                                : const Text(
+                                    'Simpan Perubahan',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        TextButton(
+                          onPressed: () async {
+                            await authProvider.signOut();
+                            if (context.mounted) {
+                              Navigator.of(
+                                context,
+                              ).popUntil((route) => route.isFirst);
+                            }
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           child: const Text(
-                            'Simpan',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                            "Logout",
+                            style: TextStyle(color: Colors.red),
                           ),
                         ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      TextButton(
-                        onPressed: () async {
-                          await authProvider.signOut();
-                          if (context.mounted) {
-                            Navigator.of(
-                              context,
-                            ).popUntil((route) => route.isFirst);
-                          }
-                        },
-                        child: const Text(
-                          "Logout",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -234,6 +301,66 @@ class ProfilePage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildEditableProfileItem(
+    String label,
+    TextEditingController controller,
+    Color bgColor, {
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 6),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextFormField(
+              controller: controller,
+              keyboardType: keyboardType,
+              maxLines: maxLines,
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return '$label tidak boleh kosong';
+                }
+                return null;
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -254,7 +381,7 @@ class ProfilePage extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: bgColor,
+              color: Colors.grey[200], // Read-only look
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -264,26 +391,13 @@ class ProfilePage extends StatelessWidget {
                 ),
               ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.black54,
-                ),
-              ],
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
             ),
           ),
         ],

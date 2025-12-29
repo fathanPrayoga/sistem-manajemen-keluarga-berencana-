@@ -6,34 +6,35 @@ class NotificationService {
 
   // Stream of Notifications
   // Stream of Notifications
-  // Filter by recipientNik
-  Stream<List<NotificationModel>> getNotifications(String nik) {
+  // Filter by userId
+  Stream<List<NotificationModel>> getNotifications(String userId) {
     return _firestore
         .collection('notifications')
-        .where('recipientNik', isEqualTo: nik)
+        .where('userId', isEqualTo: userId)
         // .orderBy('createdAt', descending: true) // Commented out to test Index issue
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => NotificationModel.fromFirestore(doc))
-          .toList();
-    });
+          return snapshot.docs
+              .map((doc) => NotificationModel.fromFirestore(doc))
+              .toList();
+        });
   }
 
   // Create a Notification (For Admin / Testing)
   Future<void> sendNotification({
-    required String nik,
+    required String userId,
     required String title,
     required String body,
   }) async {
     await _firestore.collection('notifications').add({
-      'recipientNik': nik,
+      'userId': userId,
       'title': title,
       'body': body,
       'isRead': false,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
+
   Future<void> deleteNotification(String id) async {
     await _firestore.collection('notifications').doc(id).delete();
   }

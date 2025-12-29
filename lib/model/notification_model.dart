@@ -2,16 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NotificationModel {
   final String id;
-  final String recipientNik; // Changed to NIK
+  final String userId;
   final String title;
   final String body;
-  final String time; 
+  final String time;
   final bool isRead;
   final DateTime createdAt;
 
   NotificationModel({
     required this.id,
-    required this.recipientNik,
+    required this.userId,
     required this.title,
     required this.body,
     required this.time,
@@ -21,7 +21,7 @@ class NotificationModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'recipientNik': recipientNik,
+      'userId': userId,
       'title': title,
       'body': body,
       'isRead': isRead,
@@ -31,14 +31,14 @@ class NotificationModel {
 
   factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    
+
     // Timestamp handling
     Timestamp? ts = data['createdAt'] ?? data['timestamp'];
     DateTime date = ts != null ? ts.toDate() : DateTime.now();
 
     return NotificationModel(
       id: doc.id,
-      recipientNik: data['recipientNik'] ?? '',
+      userId: data['userId'] ?? '',
       title: data['title'] ?? 'Pemberitahuan',
       body: data['body'] ?? '',
       time: _formatTimeAgo(date),

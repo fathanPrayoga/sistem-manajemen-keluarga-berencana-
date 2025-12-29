@@ -239,39 +239,52 @@ class DashboardContent extends StatelessWidget {
                 height: 220,
                 child: FutureBuilder<DocumentSnapshot>(
                   future: FirebaseAuth.instance.currentUser != null
-                      ? FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).get()
+                      ? FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser!.uid)
+                            .get()
                       : null,
                   builder: (context, userSnapshot) {
-                    if (userSnapshot.connectionState == ConnectionState.waiting) {
+                    if (userSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    
-                    final userNik = userSnapshot.data?.data() != null 
-                        ? (userSnapshot.data!.data() as Map<String, dynamic>)['nik'] as String? 
+
+                    final userNik = userSnapshot.data?.data() != null
+                        ? (userSnapshot.data!.data()
+                                  as Map<String, dynamic>)['nik']
+                              as String?
                         : null;
-                    
+
                     return StreamBuilder<List<PengaduanModel>>(
                       stream: userNik != null
                           ? PengaduanService().getMyHistory(userNik)
                           : Stream.value([]),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         }
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Center(child: Text("Belum ada pengaduan anda"));
+                          return const Center(
+                            child: Text("Belum ada pengaduan anda"),
+                          );
                         }
                         final pengaduanList = snapshot.data!;
                         return ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: pengaduanList.length,
                           itemBuilder: (context, index) {
-                            return PengaduanCard(pengaduan: pengaduanList[index]);
+                            return PengaduanCard(
+                              pengaduan: pengaduanList[index],
+                            );
                           },
                         );
                       },
                     );
-                  }
+                  },
                 ),
               ),
             ],
@@ -295,9 +308,7 @@ class TrendingCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => NewsDetailPage(news: news),
-          ),
+          MaterialPageRoute(builder: (context) => NewsDetailPage(news: news)),
         );
       },
       child: Container(
@@ -306,31 +317,33 @@ class TrendingCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           image: DecorationImage(
-            image: NetworkImage(news.imagePath), // Changed to NetworkImage for generic support, or handle assets vs network
+            image: NetworkImage(
+              news.imagePath,
+            ), // Changed to NetworkImage for generic support, or handle assets vs network
             fit: BoxFit.cover,
             onError: (exception, stackTrace) {
-               // Fallback if network fails, or if it's a local asset path
+              // Fallback if network fails, or if it's a local asset path
             },
           ),
         ),
-        // Handline mixed asset/network images is tricky. 
+        // Handline mixed asset/network images is tricky.
         // For now, sticking to logic: if starts with http use Network, else Asset.
         // But NewsModel seeder uses assets. Firestore real data might use URLs.
         // Let's revert to AssetImage if strict compat is needed, or helper.
         // Reverting to previous card implementation which assumed AssetImage for dummy data.
-        // Wait, if we are using Firebase, we might want NetworkImage. 
+        // Wait, if we are using Firebase, we might want NetworkImage.
         // But the seeder put 'assets/images/...'.
-        // So let's stick to AssetImage or a helper. 
+        // So let's stick to AssetImage or a helper.
         // The previous code had AssetImage. I will use a helper or just AssetImage for now to satisfy the seeder.
         child: Stack(
           children: [
             Container(
-               decoration: BoxDecoration(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
                   // Use a helper to check if valid URL
-                  image: news.imagePath.startsWith('http') 
-                      ? NetworkImage(news.imagePath) 
+                  image: news.imagePath.startsWith('http')
+                      ? NetworkImage(news.imagePath)
                       : AssetImage(news.imagePath) as ImageProvider,
                   fit: BoxFit.cover,
                 ),
@@ -432,9 +445,9 @@ class PengaduanCard extends StatelessWidget {
         children: [
           Row(
             children: [
-               const CircleAvatar(
+              const CircleAvatar(
                 radius: 20,
-                child: Icon(Icons.person, color: Colors.white), 
+                child: Icon(Icons.person, color: Colors.white),
                 backgroundColor: Colors.green,
               ),
               const SizedBox(width: 8),
@@ -450,7 +463,10 @@ class PengaduanCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             pengaduan.kategori,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -470,7 +486,7 @@ class PengaduanCard extends StatelessWidget {
               pengaduan.statusText,
               style: const TextStyle(fontSize: 12, color: Colors.green),
             ),
-          )
+          ),
         ],
       ),
     );
