@@ -1,4 +1,6 @@
 import 'package:app_pengaduan/views/kategori_pengaduan.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app_pengaduan/views/konsultasi.dart';
 import 'package:flutter/material.dart';
 import '../model/news_model.dart';
@@ -9,7 +11,7 @@ import '../services/pengaduan_service.dart';
 import 'riwayat_page.dart';
 import 'notification_page.dart';
 import 'package:app_pengaduan/views/profile_page.dart';
-import '../utils/news_seeder.dart'; // Import Seeder
+import '../utils/news_seeder.dart'; // Contains GlobalDataSeeder and NewsSeeder
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -20,6 +22,18 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-Run Seeder on Dashboard Load
+    // This allows News to seed if empty, and 'Gambrul' users to get data if new.
+    _runSeeder();
+  }
+
+  Future<void> _runSeeder() async {
+    await GlobalDataSeeder.seedAll();
+  }
 
   final List<Widget> _pages = [
     const DashboardContent(),
@@ -128,16 +142,6 @@ class DashboardContent extends StatelessWidget {
                       'assets/images/foto_dummy_1.jpg',
                     ),
                   ),
-                  // Temporary Seeder Button
-                  IconButton(
-                    icon: const Icon(Icons.cloud_upload),
-                    onPressed: () async {
-                      await NewsSeeder.seedNews();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('News seeded!')),
-                      );
-                    },
-                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -227,30 +231,47 @@ class DashboardContent extends StatelessWidget {
 
               // ✅ Pengaduan Section
               const Text(
-                'Pengaduan',
+                'Pengaduan Saya',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               SizedBox(
                 height: 220,
-                child: StreamBuilder<List<PengaduanModel>>(
-                  stream: PengaduanService().getPublicComplaints(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                child: FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseAuth.instance.currentUser != null
+                      ? FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).get()
+                      : null,
+                  builder: (context, userSnapshot) {
+                    if (userSnapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text("Belum ada pengaduan"));
-                    }
-                    final pengaduanList = snapshot.data!;
-                    return ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: pengaduanList.length,
-                      itemBuilder: (context, index) {
-                        return PengaduanCard(pengaduan: pengaduanList[index]);
+                    
+                    final userNik = userSnapshot.data?.data() != null 
+                        ? (userSnapshot.data!.data() as Map<String, dynamic>)['nik'] as String? 
+                        : null;
+                    
+                    return StreamBuilder<List<PengaduanModel>>(
+                      stream: userNik != null
+                          ? PengaduanService().getMyHistory(userNik)
+                          : Stream.value([]),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(child: Text("Belum ada pengaduan anda"));
+                        }
+                        final pengaduanList = snapshot.data!;
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: pengaduanList.length,
+                          itemBuilder: (context, index) {
+                            return PengaduanCard(pengaduan: pengaduanList[index]);
+                          },
+                        );
                       },
                     );
-                  },
+                  }
                 ),
               ),
             ],

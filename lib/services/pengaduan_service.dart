@@ -24,9 +24,18 @@ class PengaduanService {
     });
   }
 
-  // Fetch My History
-  Stream<List<PengaduanModel>> getMyHistory() {
-    return getPublicComplaints();
+  // Fetch My History (Verified by NIK)
+  Stream<List<PengaduanModel>> getMyHistory(String nik) {
+    return _firestore
+        .collection('pengaduan')
+        .where('nik', isEqualTo: nik)
+        // .orderBy('created_at', descending: true) // Commented out to test Index issue
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => PengaduanModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
   Future<String> uploadFoto(File file) async {
