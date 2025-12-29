@@ -63,8 +63,9 @@ class KonsultasiPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ChatKonsultasiPage(
+                            builder: (context) => ChatKonsultasiPage(
                               title: 'Konsultasi Keluarga Berencana',
+                              categoryId: 'kb',
                             ),
                           ),
                         );
@@ -79,8 +80,9 @@ class KonsultasiPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ChatKonsultasiPage(
+                            builder: (context) => ChatKonsultasiPage(
                               title: 'Konsultasi Psikologi',
+                              categoryId: 'psikologi',
                             ),
                           ),
                         );
@@ -95,8 +97,9 @@ class KonsultasiPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ChatKonsultasiPage(
+                            builder: (context) => ChatKonsultasiPage(
                               title: 'Konsultasi Parenting',
+                              categoryId: 'parenting',
                             ),
                           ),
                         );
