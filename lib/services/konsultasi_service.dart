@@ -44,6 +44,7 @@ class KonsultasiService {
       'userId': userId,
       'userName': userName,
       'lastMessage': text,
+      'lastMessageTime': FieldValue.serverTimestamp(),
       'lastUpdated': FieldValue.serverTimestamp(),
       'lastSenderId': userId,
       'isReadByAdmin': false, // Flag for Admin UI
