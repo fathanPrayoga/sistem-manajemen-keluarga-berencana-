@@ -14,6 +14,7 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nikController = TextEditingController(); // [NEW]
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -28,6 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _emailController.text,
       _passwordController.text,
       _nameController.text,
+      _nikController.text, // [NEW] Pass NIK
     );
 
     if (success) {
@@ -65,6 +67,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _nikController.dispose(); // [NEW]
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -115,6 +118,17 @@ class _RegisterPageState extends State<RegisterPage> {
                       icon: Icons.person_outline,
                       validator: (value) => (value == null || value.isEmpty)
                           ? 'Nama tidak boleh kosong'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _nikController,
+                      label: 'NIK',
+                      icon: Icons.credit_card,
+                      keyboardType: TextInputType.number,
+                      validator: (value) =>
+                          (value == null || value.length != 16)
+                          ? 'NIK harus 16 digit'
                           : null,
                     ),
                     const SizedBox(height: 16),

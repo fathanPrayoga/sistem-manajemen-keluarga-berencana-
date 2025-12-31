@@ -71,12 +71,17 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> signUp(String email, String password, String name) async {
+  Future<bool> signUp(
+    String email,
+    String password,
+    String name,
+    String nik,
+  ) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      _user = await _authService.signUp(email, password, name);
+      _user = await _authService.signUp(email, password, name, nik);
 
       if (_user != null) {
         await fetchUserData();
@@ -97,6 +102,35 @@ class AuthProvider with ChangeNotifier {
     _user = null;
     _currentUserData = null; // Clear user data
     notifyListeners();
+  }
+
+  Future<bool> updateProfile({
+    required String name,
+    required String nik,
+    required String phone,
+    required String address,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_user != null) {
+        await _authService.updateUserProfile(_user!.uid, {
+          'name': name,
+          'nik': nik,
+          'phone': phone,
+          'address': address,
+        });
+        await fetchUserData(); // Refresh local data
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   // Reload user

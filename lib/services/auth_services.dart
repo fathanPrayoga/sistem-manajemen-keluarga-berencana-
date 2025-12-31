@@ -43,8 +43,22 @@ class AuthService {
     }
   }
 
+  // Update User Profile
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('users').doc(uid).update(data);
+    } catch (e) {
+      throw e;
+    }
+  }
+
   // Sign Up
-  Future<User?> signUp(String email, String password, String name) async {
+  Future<User?> signUp(
+    String email,
+    String password,
+    String name,
+    String nik,
+  ) async {
     try {
       // 1. Create User
       UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -60,6 +74,7 @@ class AuthService {
           'uid': user.uid,
           'email': email,
           'name': name,
+          'nik': nik, // [NEW] Save NIK
           'role': 'user', // Default role
           'createdAt': FieldValue.serverTimestamp(),
           'fcmToken': token,

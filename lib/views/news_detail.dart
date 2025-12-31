@@ -11,20 +11,39 @@ class NewsDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Berita'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+        backgroundColor: const Color(0xFF4CAF50), // Green to match app theme
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              news.imagePath,
-              width: double.infinity,
-              height: 250,
-              fit: BoxFit.cover,
-            ),
+            (news.imagePath.startsWith('http')
+                ? Image.network(
+                    news.imagePath,
+                    width: double.infinity,
+                    height: 250,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, error, stackTrace) => Container(
+                      height: 250,
+                      color: Colors.grey[300],
+                      child: const Center(child: Icon(Icons.broken_image)),
+                    ),
+                  )
+                : Image.asset(
+                    news.imagePath,
+                    width: double.infinity,
+                    height: 250,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, error, stackTrace) => Container(
+                      height: 250,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(Icons.image_not_supported),
+                      ),
+                    ),
+                  )),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -40,10 +59,7 @@ class NewsDetailPage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     news.date,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   ),
                   const SizedBox(height: 16),
                   Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/kb_service.dart';
 import '../model/kb_model.dart';
 
@@ -10,11 +11,21 @@ class KbViewModel extends ChangeNotifier {
   List<KbModel> get listPendaftaran => _listPendaftaran;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchPendaftaran() async {
+  Future<void> fetchPendaftaran({String? nik}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _listPendaftaran = [];
+      notifyListeners();
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
     try {
-      _listPendaftaran = await _service.getPendaftaran();
+      _listPendaftaran = await _service.getPendaftaran(
+        userId: user.uid,
+        nik: nik,
+      );
     } catch (e) {
       debugPrint("Error Fetch: $e");
     } finally {
@@ -34,9 +45,13 @@ class KbViewModel extends ChangeNotifier {
       if (isEdit) {
         await _service.updatePendaftaran(id!, data);
       } else {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          data.userId = user.uid;
+        }
         await _service.addPendaftaran(data);
       }
-      await fetchPendaftaran();
+      await fetchPendaftaran(nik: data.nik);
     } catch (e) {
       rethrow;
     } finally {
@@ -47,6 +62,9 @@ class KbViewModel extends ChangeNotifier {
 
   Future<void> hapusPendaftaran(String id) async {
     await _service.deletePendaftaran(id);
-    await fetchPendaftaran();
+    await fetchPendaftaran(); // If we have nik stored in viewModel in future, pass it here. For now it triggers userId fetch if nik missing.
+    // Ideally we preserve the last NIK used or fetch user data again.
+    // For simplicity, let's assume subsequent fetches might need NIK again or just rely on manual refresh.
+    // Or we can update the View to always pass NIK.
   }
 }
