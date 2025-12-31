@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/auth_provider.dart' as custom_auth;
 import '../model/notification_model.dart';
 import '../services/notification_service.dart';
 
@@ -8,8 +10,10 @@ class NotificationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get current User ID
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    // Get current User ID and NIK
+    final authProvider = context.watch<custom_auth.AuthProvider>();
+    final userId = authProvider.currentUserData?.uid;
+    final nik = authProvider.currentUserData?.nik;
 
     if (userId == null) {
       return Scaffold(
@@ -24,7 +28,7 @@ class NotificationPage extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<List<NotificationModel>>(
-        stream: NotificationService().getNotifications(userId),
+        stream: NotificationService().getNotifications(userId, nik: nik),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

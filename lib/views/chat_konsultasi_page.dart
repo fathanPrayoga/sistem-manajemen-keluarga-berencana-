@@ -26,6 +26,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
   final KonsultasiService _service = KonsultasiService();
   String? _userId;
   String? _userName;
+  DateTime? _lastReadTime;
 
   @override
   void initState() {
@@ -35,6 +36,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
 
     // Try to fetch display name and NIK from users collection
     if (_userId != null) {
+      // 1. Fetch User Data
       FirebaseFirestore.instance.collection('users').doc(_userId).get().then((
         doc,
       ) {
@@ -47,6 +49,39 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
           }
         }
       });
+
+      // 2. Fetch Last Read Time & Mark as Read
+      _initializeReadStatus();
+    }
+  }
+
+  Future<void> _initializeReadStatus() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('konsultasi')
+          .doc(widget.categoryId)
+          .collection('chats')
+          .doc(_userId)
+          .get();
+
+      if (doc.exists && mounted) {
+        final data = doc.data();
+        if (data != null) {
+          final dynamic ts = data['lastReadTimestampUser'];
+          if (ts is Timestamp) {
+            setState(() {
+              _lastReadTime = ts.toDate();
+            });
+          }
+        }
+      }
+
+      // Mark as read immediately after fetching status
+      if (mounted) {
+        await _service.markAsRead(widget.categoryId, _userId!);
+      }
+    } catch (e) {
+      debugPrint('Error initializing read status: $e');
     }
   }
 
@@ -234,10 +269,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
           ),
         ),
         const SizedBox(width: 8),
-        const CircleAvatar(
+        CircleAvatar(
           radius: 20,
           backgroundColor: Colors.grey,
-          child: Icon(Icons.person, color: AppColors.background),
+          child: Text(
+            (_userName != null && _userName!.isNotEmpty)
+                ? _userName![0].toUpperCase()
+                : '?',
+            style: const TextStyle(
+              color: AppColors.background,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ],
     );
@@ -366,7 +409,76 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
-                    return _buildMessageItem(data);
+
+                    // Logic for Unread Divider
+                    bool showDivider = false;
+                    if (_lastReadTime != null) {
+                      final dynamic ts = data['timestamp'];
+                      DateTime? msgTime;
+                      if (ts is Timestamp)
+                        msgTime = ts.toDate();
+                      else if (ts is DateTime)
+                        msgTime = ts;
+
+                      if (msgTime != null && msgTime.isAfter(_lastReadTime!)) {
+                        // Check previous message
+                        if (index == 0) {
+                          showDivider = true;
+                        } else {
+                          final prevData =
+                              docs[index - 1].data() as Map<String, dynamic>;
+                          final dynamic prevTs = prevData['timestamp'];
+                          DateTime? prevTime;
+                          if (prevTs is Timestamp)
+                            prevTime = prevTs.toDate();
+                          else if (prevTs is DateTime)
+                            prevTime = prevTs;
+
+                          if (prevTime != null &&
+                              !prevTime.isAfter(_lastReadTime!)) {
+                            showDivider = true;
+                          }
+                        }
+                      }
+                    }
+
+                    final messageWidget = _buildMessageItem(data);
+
+                    if (showDivider) {
+                      return Column(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(color: Colors.red[200]),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  child: Text(
+                                    'Pesan Belum Terbaca',
+                                    style: TextStyle(
+                                      color: Colors.red[300],
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Divider(color: Colors.red[200]),
+                                ),
+                              ],
+                            ),
+                          ),
+                          messageWidget,
+                        ],
+                      );
+                    }
+
+                    return messageWidget;
                   },
                 );
               },

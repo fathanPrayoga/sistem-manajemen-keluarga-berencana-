@@ -117,13 +117,18 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.arrow_back_ios,
-                                color: Colors.white,
-                              ),
-                              onPressed: () => Navigator.pop(context),
-                            ),
+                            if (Navigator.canPop(context))
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back_ios,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                              )
+                            else
+                              const SizedBox(
+                                width: 48,
+                              ), // Spacer to balance layout
                             const Expanded(
                               child: Padding(
                                 padding: EdgeInsets.only(top: 10),

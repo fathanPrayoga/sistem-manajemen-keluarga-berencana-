@@ -4,14 +4,20 @@ import '../model/news_model.dart';
 class NewsService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Stream of Trending News
+  // Stream untuk mengambil Berita Populer (Trending)
   Stream<List<NewsModel>> getTrendingNews() {
     return _firestore
-        .collection('news') // Assumed collection name
-        .orderBy('created_at', descending: true) // Assumed field
+        .collection('news') // Nama koleksi di Firestore
+        // .orderBy('date', descending: true) // Dihapus untuk menghindari error Index Firestore
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => NewsModel.fromFirestore(doc)).toList();
-    });
+          final news = snapshot.docs
+              .map((doc) => NewsModel.fromFirestore(doc))
+              .toList();
+
+          // Pengurutan data di sisi aplikasi (Client-side)
+          // Saat ini mengembalikan urutan default dari Firestore
+          return news;
+        });
   }
 }

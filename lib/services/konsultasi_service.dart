@@ -48,6 +48,9 @@ class KonsultasiService {
       'lastUpdated': FieldValue.serverTimestamp(),
       'lastSenderId': userId,
       'isReadByAdmin': false, // Flag for Admin UI
+      'unreadCountAdmin': FieldValue.increment(
+        1,
+      ), // [NEW] Increment admin unread count
     }, SetOptions(merge: true));
 
     // 3. Trigger Notification (Standard FCM Trigger)
@@ -61,5 +64,23 @@ class KonsultasiService {
       'fromUserId': userId,
       'created_at': FieldValue.serverTimestamp(),
     });
+  }
+
+  /// Mark chat as read for User (resets unreadCountUser)
+  Future<void> markAsRead(String categoryId, String userId) async {
+    try {
+      final chatDocRef = _firestore
+          .collection('konsultasi')
+          .doc(categoryId)
+          .collection('chats')
+          .doc(userId);
+
+      await chatDocRef.update({
+        'unreadCountUser': 0,
+        'lastReadTimestampUser': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      // Ignore if doc doesn't exist yet
+    }
   }
 }

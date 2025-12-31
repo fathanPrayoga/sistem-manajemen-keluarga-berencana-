@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../viewmodels/auth_provider.dart'; // Import AuthProvider
 import '../viewmodels/kb_view_model.dart';
 import '/model/kb_model.dart';
 
@@ -16,7 +17,9 @@ class _KbListPageState extends State<KbListPage> {
     super.initState();
     // Mengambil data terbaru dari Firebase saat halaman dibuka
     Future.delayed(Duration.zero, () {
-      context.read<KbViewModel>().fetchPendaftaran();
+      final authProvider = context.read<AuthProvider>();
+      final nik = authProvider.currentUserData?.nik;
+      context.read<KbViewModel>().fetchPendaftaran(nik: nik);
     });
   }
 
@@ -78,7 +81,11 @@ class _KbListPageState extends State<KbListPage> {
               child: Text("Belum ada data pendaftar. Klik + untuk menambah."),
             )
           : RefreshIndicator(
-              onRefresh: () => viewModel.fetchPendaftaran(),
+              onRefresh: () async {
+                final authProvider = context.read<AuthProvider>();
+                final nik = authProvider.currentUserData?.nik;
+                await viewModel.fetchPendaftaran(nik: nik);
+              },
               child: ListView.builder(
                 padding: const EdgeInsets.all(10),
                 itemCount: viewModel.listPendaftaran.length,

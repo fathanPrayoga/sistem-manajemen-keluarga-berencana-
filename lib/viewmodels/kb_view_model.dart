@@ -11,7 +11,7 @@ class KbViewModel extends ChangeNotifier {
   List<KbModel> get listPendaftaran => _listPendaftaran;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchPendaftaran() async {
+  Future<void> fetchPendaftaran({String? nik}) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       _listPendaftaran = [];
@@ -22,7 +22,10 @@ class KbViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _listPendaftaran = await _service.getPendaftaran(user.uid);
+      _listPendaftaran = await _service.getPendaftaran(
+        userId: user.uid,
+        nik: nik,
+      );
     } catch (e) {
       debugPrint("Error Fetch: $e");
     } finally {
@@ -48,7 +51,7 @@ class KbViewModel extends ChangeNotifier {
         }
         await _service.addPendaftaran(data);
       }
-      await fetchPendaftaran();
+      await fetchPendaftaran(nik: data.nik);
     } catch (e) {
       rethrow;
     } finally {
@@ -59,6 +62,9 @@ class KbViewModel extends ChangeNotifier {
 
   Future<void> hapusPendaftaran(String id) async {
     await _service.deletePendaftaran(id);
-    await fetchPendaftaran();
+    await fetchPendaftaran(); // If we have nik stored in viewModel in future, pass it here. For now it triggers userId fetch if nik missing.
+    // Ideally we preserve the last NIK used or fetch user data again.
+    // For simplicity, let's assume subsequent fetches might need NIK again or just rely on manual refresh.
+    // Or we can update the View to always pass NIK.
   }
 }

@@ -1,23 +1,74 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../model/notification_model.dart';
 
 class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Stream of Notifications
-  // Stream of Notifications
-  // Filter by userId
-  Stream<List<NotificationModel>> getNotifications(String userId) {
-    return _firestore
+  // Mengambil data notifikasi berdasarkan User ID dan NIK
+  Stream<List<NotificationModel>> getNotifications(
+    String userId, {
+    String? nik,
+  }) {
+    // Stream 1: Notifikasi berdasarkan ID Pengguna (untuk Chat)
+    final streamUser = _firestore
         .collection('notifications')
         .where('userId', isEqualTo: userId)
-        // .orderBy('createdAt', descending: true) // Commented out to test Index issue
         .snapshots()
-        .map((snapshot) {
-          return snapshot.docs
+        .map(
+          (snapshot) => snapshot.docs
               .map((doc) => NotificationModel.fromFirestore(doc))
-              .toList();
-        });
+              .toList(),
+        );
+
+    // Jika tidak ada NIK, kembalikan stream user saja
+    if (nik == null || nik.isEmpty) {
+      return streamUser;
+    }
+
+    // Stream 2: Notifikasi berdasarkan NIK (untuk Update KB)
+    final streamNik = _firestore
+        .collection('notifications')
+        .where('recipientNik', isEqualTo: nik)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => NotificationModel.fromFirestore(doc))
+              .toList(),
+        );
+
+    // Menggabungkan kedua stream menjadi satu list
+    return _combineStreams(streamUser, streamNik);
+  }
+
+  // Fungsi bantuan untuk menggabungkan dua stream menjadi satu list
+  Stream<List<NotificationModel>> _combineStreams(
+    Stream<List<NotificationModel>> s1,
+    Stream<List<NotificationModel>> s2,
+  ) {
+    return Stream<List<NotificationModel>>.multi((controller) {
+      List<NotificationModel> list1 = [];
+      List<NotificationModel> list2 = [];
+
+      // Fungsi untuk menggabungkan dan mengirim data ke UI
+      void emit() {
+        final combined = [...list1, ...list2];
+        // Opsi: Urutkan data berdasarkan waktu jika diperlukan (di sini default gabung saja)
+        controller.add(combined);
+      }
+
+      // Dengarkan perubahan pada stream 1
+      s1.listen((data) {
+        list1 = data;
+        emit();
+      });
+
+      // Dengarkan perubahan pada stream 2
+      s2.listen((data) {
+        list2 = data;
+        emit();
+      });
+    });
   }
 
   // Create a Notification (For Admin / Testing)

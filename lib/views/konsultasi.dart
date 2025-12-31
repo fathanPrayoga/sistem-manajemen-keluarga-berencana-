@@ -3,6 +3,10 @@ import '../style/colors.dart';
 import '../style/text_style.dart';
 import '../widget/bottom_navbar.dart';
 import 'package:app_pengaduan/views/chat_konsultasi_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:app_pengaduan/viewmodels/auth_provider.dart' as custom_auth;
 
 class KonsultasiPage extends StatelessWidget {
   const KonsultasiPage({super.key});
@@ -52,58 +56,34 @@ class KonsultasiPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
-                    const GreetingCard(userName: 'neymar'),
+                    Consumer<custom_auth.AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        final userName =
+                            authProvider.currentUserData?.name ?? 'Pengguna';
+                        return GreetingCard(userName: userName);
+                      },
+                    ),
                     const SizedBox(height: 20),
 
-                    ConsultationCard(
-                      title: 'Konsultasi Keluarga Berencana',
-                      imagePath:
-                          'assets/images/konsultasi_keluarga_berencana.png',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatKonsultasiPage(
-                              title: 'Konsultasi Keluarga Berencana',
-                              categoryId: 'kb',
-                            ),
-                          ),
-                        );
-                      },
+                    _buildCardWithStream(
+                      context,
+                      'Konsultasi Keluarga Berencana',
+                      'assets/images/konsultasi_keluarga_berencana.png',
+                      'kb',
                     ),
                     const SizedBox(height: 16),
-
-                    ConsultationCard(
-                      title: 'Konsultasi Psikologi',
-                      imagePath: 'assets/images/konsultasi_psikolog.png',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatKonsultasiPage(
-                              title: 'Konsultasi Psikologi',
-                              categoryId: 'psikologi',
-                            ),
-                          ),
-                        );
-                      },
+                    _buildCardWithStream(
+                      context,
+                      'Konsultasi Psikologi',
+                      'assets/images/konsultasi_psikolog.png',
+                      'psikologi',
                     ),
                     const SizedBox(height: 16),
-
-                    ConsultationCard(
-                      title: 'Konsultasi Parenting',
-                      imagePath: 'assets/images/konsultasi_parenting.png',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatKonsultasiPage(
-                              title: 'Konsultasi Parenting',
-                              categoryId: 'parenting',
-                            ),
-                          ),
-                        );
-                      },
+                    _buildCardWithStream(
+                      context,
+                      'Konsultasi Parenting',
+                      'assets/images/konsultasi_parenting.png',
+                      'parenting',
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -115,6 +95,57 @@ class KonsultasiPage extends StatelessWidget {
       ),
 
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
+    );
+  }
+
+  Widget _buildCardWithStream(
+    BuildContext context,
+    String title,
+    String imagePath,
+    String categoryId,
+  ) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      return ConsultationCard(
+        title: title,
+        imagePath: imagePath,
+        onTap: () => _navigateToChat(context, title, categoryId),
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('konsultasi')
+          .doc(categoryId)
+          .collection('chats')
+          .doc(userId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        int badgeCount = 0;
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
+          if (data != null) {
+            badgeCount = data['unreadCountUser'] as int? ?? 0;
+          }
+        }
+
+        return ConsultationCard(
+          title: title,
+          imagePath: imagePath,
+          badgeCount: badgeCount,
+          onTap: () => _navigateToChat(context, title, categoryId),
+        );
+      },
+    );
+  }
+
+  void _navigateToChat(BuildContext context, String title, String categoryId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ChatKonsultasiPage(title: title, categoryId: categoryId),
+      ),
     );
   }
 }
@@ -143,29 +174,41 @@ class GreetingCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 30,
-            backgroundImage: AssetImage('assets/images/user_profile.png'),
             backgroundColor: AppColors.secondary,
+            child: Text(
+              (userName.isNotEmpty) ? userName[0].toUpperCase() : '?',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
           const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'SELAMAT SIANG ${userName.toUpperCase()}',
-                style: AppTextStyles.bodyText.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SELAMAT SIANG ${userName.toUpperCase()}',
+                  style: AppTextStyles.bodyText.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                  overflow:
+                      TextOverflow.ellipsis, // Potong teks jika terlalu panjang
+                  maxLines: 2, // Maksimal 2 baris
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Apakah anda baik-baik saja?',
-                style: AppTextStyles.caption.copyWith(fontSize: 14),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  'Apakah anda baik-baik saja?',
+                  style: AppTextStyles.caption.copyWith(fontSize: 14),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -177,12 +220,14 @@ class ConsultationCard extends StatelessWidget {
   final String title;
   final String imagePath;
   final VoidCallback onTap;
+  final int badgeCount;
 
   const ConsultationCard({
     super.key,
     required this.title,
     required this.imagePath,
     required this.onTap,
+    this.badgeCount = 0,
   });
 
   @override
@@ -227,23 +272,57 @@ class ConsultationCard extends StatelessWidget {
                     topLeft: Radius.circular(15),
                     bottomLeft: Radius.circular(15),
                   ),
-                  child: Image.asset(imagePath, fit: BoxFit.cover),
+                  child: Image.asset(
+                    imagePath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.secondary.withOpacity(0.5),
+                        child: const Center(
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
 
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Center(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.left,
-                      style: AppTextStyles.headline2.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.left,
+                          style: AppTextStyles.headline2.copyWith(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ),
-                    ),
+                      if (badgeCount > 0)
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            badgeCount > 99 ? '99+' : badgeCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
