@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../style/colors.dart';
 import '../style/text_style.dart';
-import '../widget/bottom_navbar.dart';
 import 'package:app_pengaduan/views/chat_konsultasi_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -93,8 +92,6 @@ class KonsultasiPage extends StatelessWidget {
           ],
         ),
       ),
-
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
     );
   }
 

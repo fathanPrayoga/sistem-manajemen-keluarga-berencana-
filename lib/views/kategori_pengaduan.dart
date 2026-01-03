@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../widget/bottom_navbar.dart';
 import '../style/colors.dart';
 import '../style/text_style.dart';
 import '../model/kategori_pengaduan.dart';
@@ -48,7 +47,7 @@ class KategoriPengaduanPage extends StatelessWidget {
         backgroundColor: AppColors.primary,
         centerTitle: true,
       ),
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.builder(

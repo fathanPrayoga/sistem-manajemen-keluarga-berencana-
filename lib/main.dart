@@ -66,6 +66,8 @@ class MyApp extends StatelessWidget {
           '/kategori': (context) => const KategoriPengaduanPage(),
           '/KeluargaBerencana': (context) => const KbListPage(),
           '/FormKB': (context) => const KbFormPage(),
+          '/verification': (context) =>
+              const VerificationPage(), // Add this line
         },
       ),
     );

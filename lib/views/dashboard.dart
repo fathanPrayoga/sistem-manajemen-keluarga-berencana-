@@ -347,15 +347,7 @@ class TrendingCard extends StatelessWidget {
             },
           ),
         ),
-        // Handline mixed asset/network images is tricky.
-        // For now, sticking to logic: if starts with http use Network, else Asset.
-        // But NewsModel seeder uses assets. Firestore real data might use URLs.
-        // Let's revert to AssetImage if strict compat is needed, or helper.
-        // Reverting to previous card implementation which assumed AssetImage for dummy data.
-        // Wait, if we are using Firebase, we might want NetworkImage.
-        // But the seeder put 'assets/images/...'.
-        // So let's stick to AssetImage or a helper.
-        // The previous code had AssetImage. I will use a helper or just AssetImage for now to satisfy the seeder.
+
         child: Stack(
           children: [
             Container(

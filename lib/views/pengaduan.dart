@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../style/colors.dart';
 import '../style/text_style.dart';
-import '../widget/bottom_navbar.dart';
+
 import '../viewmodels/pengaduan_view_model.dart';
 
 class PengaduanPage extends StatefulWidget {
@@ -80,7 +80,6 @@ class _PengaduanPageState extends State<PengaduanPage> {
         backgroundColor: AppColors.primary,
         centerTitle: true,
       ),
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
       body: Consumer<PengaduanViewModel>(
         builder: (context, vm, _) {
           return SingleChildScrollView(

@@ -75,29 +75,48 @@ class _VerificationPageState extends State<VerificationPage> {
               ),
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: () async {
-                  await authProvider.reloadUser();
-                  if (authProvider.isEmailVerified) {
-                    // Trigger rebuild in main wrapper automatically
-                  } else {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Email belum diverifikasi. Coba lagi.'),
-                          backgroundColor: Colors.orange,
-                        ),
-                      );
-                    }
-                  }
-                },
+                onPressed: _isSending
+                    ? null
+                    : () async {
+                        setState(() => _isSending = true);
+                        try {
+                          await authProvider.reloadUser();
+                          if (authProvider.isEmailVerified) {
+                            // Trigger rebuild in main wrapper
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Email belum diverifikasi. Coba lagi.',
+                                  ),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          print(e); // Debug print
+                        } finally {
+                          if (mounted) {
+                            setState(() => _isSending = false);
+                          }
+                        }
+                      },
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                 ),
-                child: const Text('Saya Sudah Verifikasi'),
+                child: _isSending
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Saya Sudah Verifikasi'),
               ),
               const SizedBox(height: 24),
               TextButton(
-                onPressed: () => authProvider.signOut(),
+                onPressed: _isSending ? null : () => authProvider.signOut(),
                 child: const Text('Logout'),
               ),
             ],

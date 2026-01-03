@@ -283,18 +283,31 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 16),
 
                         TextButton(
-                          onPressed: () async {
-                            await authProvider.signOut();
-                            if (context.mounted) {
-                              Navigator.of(
-                                context,
-                              ).popUntil((route) => route.isFirst);
-                            }
-                          },
-                          child: const Text(
-                            "Logout",
-                            style: TextStyle(color: Colors.red),
-                          ),
+                          onPressed: authProvider.isLoading
+                              ? null
+                              : () async {
+                                  await authProvider.signOut();
+                                  if (context.mounted) {
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamedAndRemoveUntil(
+                                      '/login',
+                                      (route) => false,
+                                    );
+                                  }
+                                },
+                          child: authProvider.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  "Logout",
+                                  style: TextStyle(color: Colors.red),
+                                ),
                         ),
                       ],
                     ),

@@ -53,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       Navigator.of(
         context,
-      ).pushNamedAndRemoveUntil('/dashboard', (route) => false);
+      ).pushNamedAndRemoveUntil('/verification', (route) => false);
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

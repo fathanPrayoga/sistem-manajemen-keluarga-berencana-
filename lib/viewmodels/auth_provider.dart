@@ -98,9 +98,14 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    _isLoading = true;
+    notifyListeners();
+
     await _authService.signOut();
     _user = null;
     _currentUserData = null; // Clear user data
+
+    _isLoading = false;
     notifyListeners();
   }
 
