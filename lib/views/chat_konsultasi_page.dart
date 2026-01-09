@@ -172,37 +172,40 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
           ),
         ),
         const SizedBox(width: 8),
+
         Flexible(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            margin: const EdgeInsets.only(right: 50, top: 4),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.zero,
-                topRight: Radius.circular(15),
-                bottomLeft: Radius.circular(15),
-                bottomRight: Radius.circular(15),
+          child: IntrinsicWidth(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              margin: const EdgeInsets.only(top: 4),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.zero,
+                  topRight: Radius.circular(15),
+                  bottomLeft: Radius.circular(15),
+                  bottomRight: Radius.circular(15),
+                ),
+                border: Border.all(color: AppColors.primary, width: 0.5),
               ),
-              border: Border.all(color: AppColors.primary, width: 0.5),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  senderName,
-                  style: AppTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.bold,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    senderName,
+                    style: AppTextStyles.caption.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  text,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textDark,
+                  const SizedBox(height: 2),
+                  Text(
+                    text,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textDark,
+                    ),
                   ),
-                ),
-                if (timestamp.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Align(
                     alignment: Alignment.bottomRight,
@@ -215,7 +218,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -410,9 +413,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
 
-                    // Logic for Unread Divider
+                    // Logic for Unread Divider - only for incoming messages
                     bool showDivider = false;
-                    if (_lastReadTime != null) {
+                    final currentSenderId = data['senderId'] as String? ?? '';
+                    final bool isIncoming = currentSenderId != _userId;
+
+                    if (isIncoming && _lastReadTime != null) {
                       final dynamic ts = data['timestamp'];
                       DateTime? msgTime;
                       if (ts is Timestamp)
@@ -421,7 +427,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage> {
                         msgTime = ts;
 
                       if (msgTime != null && msgTime.isAfter(_lastReadTime!)) {
-                        // Check previous message
+                        // Check previous message (divider should appear only
+                        // before the first incoming message that is after lastReadTime)
                         if (index == 0) {
                           showDivider = true;
                         } else {
