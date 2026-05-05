@@ -11,7 +11,7 @@ class NewsDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Berita'),
-        backgroundColor: const Color(0xFF4CAF50), // Green to match app theme
+        backgroundColor: const Color(0xFF4CAF50),
         foregroundColor: Colors.white,
         elevation: 0,
       ),

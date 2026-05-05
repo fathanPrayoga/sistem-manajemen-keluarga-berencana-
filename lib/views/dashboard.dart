@@ -14,7 +14,7 @@ import '../services/pengaduan_service.dart';
 import 'riwayat_page.dart';
 import 'notification_page.dart';
 import 'package:app_pengaduan/views/profile_page.dart';
-import '../utils/news_seeder.dart'; // Contains GlobalDataSeeder and NewsSeeder
+import '../utils/news_seeder.dart'; // GlobalDataSeeder dan NewsSeeder
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -29,8 +29,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    // Auto-Run Seeder on Dashboard Load
-    // This allows News to seed if empty, and 'Gambrul' users to get data if new.
     _runSeeder();
   }
 
@@ -87,7 +85,7 @@ class DashboardContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ Logo and Title
+              // logo dan judul
               Row(
                 children: [
                   Image.asset(
@@ -117,7 +115,7 @@ class DashboardContent extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ✅ Search bar and profile
+              // Search bar dan profile
               Row(
                 children: [
                   Expanded(
@@ -139,8 +137,6 @@ class DashboardContent extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Dynamic Profile Avatar
-                  // Dynamic Profile Avatar
                   Consumer<custom_auth.AuthProvider>(
                     builder: (context, authProvider, child) {
                       final user = authProvider.currentUserData;
@@ -167,7 +163,7 @@ class DashboardContent extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // ✅ Trending Section
+              // Trending Section
               const Text(
                 'Trending',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -197,14 +193,14 @@ class DashboardContent extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // ✅ Kategori Section
+              // fitur Section
               const Text(
                 'Kategori',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
-              // ✅ Evenly spaced 4 Kategori items
+              // fitur
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -250,7 +246,7 @@ class DashboardContent extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // ✅ Pengaduan Section
+              // Pengaduan Section
               const Text(
                 'Pengaduan Saya',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
